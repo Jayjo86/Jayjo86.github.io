@@ -1,4 +1,4 @@
-baseURL: "https://Jayjo86.github.io/"   # swap for your custom domain later
+baseURL: "https://juergen-neulinger.dev/"  
 languageCode: "en-us"
 title: "Juergen Neulinger"
 theme: "PaperMod"
@@ -9,7 +9,7 @@ pygmentsUseClasses: true
 markup:
   goldmark:
     renderer:
-      unsafe: true        # lets the Mermaid HTML through
+      unsafe: true
 
 params:
   defaultTheme: auto
