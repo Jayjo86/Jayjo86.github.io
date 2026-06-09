@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Juergen Neulinger</title>
+    <link>http://localhost:1313/</link>
+    <description>Recent content on Juergen Neulinger</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 08 Jun 2026 16:02:17 +0200</lastBuildDate>
+    <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>About</title>
+      <link>http://localhost:1313/about/</link>
+      <pubDate>Mon, 08 Jun 2026 16:02:17 +0200</pubDate>
+      <guid>http://localhost:1313/about/</guid>
+      <description>&lt;h3 id=&#34;who-am-i&#34;&gt;Who am i&lt;/h3&gt;
+&lt;p&gt;I&amp;rsquo;m Jürgen Neulinger. I build the infrastructure other people&amp;rsquo;s AI systems run on — agent frameworks, RAG, and the plumbing in between. Right now I lead a generative-AI platform team at Erste Digital, where &amp;ldquo;it works in the demo&amp;rdquo; and &amp;ldquo;it survives an audit&amp;rdquo; are two very different bars. The second one is the job.&lt;/p&gt;
+&lt;p&gt;My pattern is to build a foundation to the point a team can own it, then move on to the next one. A few of them: the central capability for provisioning and governing the LLMs used at the bank, now run by the Databricks platform team; a config-driven RAG framework where onboarding a new use case is an index and a little auth config, not new pipeline code; an FSM-based agent framework; and an MCP gateway with real enterprise auth — Entra ID, per-tool OPA/Rego authorization, OAuth 2.1 On-Behalf-Of.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>I taught an AI to give up. It&#39;s the best feature I built.</title>
+      <link>http://localhost:1313/posts/teaching-ai-to-give-up/</link>
+      <pubDate>Mon, 08 Jun 2026 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/posts/teaching-ai-to-give-up/</guid>
+      <description>&lt;p&gt;Quick context: I built a system that runs structured interviews. A user has a conversation with an LLM about a topic — an internal intake, a due-diligence questionnaire, a structured assessment — and on the other side comes a structured record. Every required field is filled, partially filled, or explicitly marked as &amp;ldquo;we couldn&amp;rsquo;t determine this.&amp;rdquo; Conversational on top, schema-driven underneath.&lt;/p&gt;
+&lt;p&gt;I inherited an agent. Hundreds of lines of prompt, written by hands that had since moved on. Rules referencing bugs I&amp;rsquo;d never heard of. Three different definitions of &amp;ldquo;done,&amp;rdquo; each one valid depending on which paragraph you stopped at. I tuned it the way you tune any prompt you didn&amp;rsquo;t write — adding clauses on top, hoping, never sure which one was load-bearing.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

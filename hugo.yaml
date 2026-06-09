@@ -1,0 +1,33 @@
+baseURL: "https://Jayjo86.github.io/"   # swap for your custom domain later
+languageCode: "en-us"
+title: "Juergen Neulinger"
+theme: "PaperMod"
+
+enableRobotsTXT: true
+pygmentsUseClasses: true
+
+markup:
+  goldmark:
+    renderer:
+      unsafe: true        # lets the Mermaid HTML through
+
+params:
+  defaultTheme: auto
+  ShowReadingTime: true
+  ShowShareButtons: true
+  ShowCodeCopyButtons: true
+  ShowToc: true
+  socialIcons:
+    - name: linkedin
+      url: "https://www.linkedin.com/in/YOUR-PROFILE"
+    - name: github
+      url: "https://github.com/Jayjo86"
+
+menu:
+  main:
+    - name: Posts
+      url: /posts/
+      weight: 1
+    - name: About
+      url: /about/
+      weight: 2

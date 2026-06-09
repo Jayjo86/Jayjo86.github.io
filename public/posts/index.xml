@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/">
+  <channel>
+    <title>Posts on Juergen Neulinger</title>
+    <link>http://localhost:1313/posts/</link>
+    <description>Recent content in Posts on Juergen Neulinger</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Mon, 08 Jun 2026 00:00:00 +0000</lastBuildDate>
+    <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>I taught an AI to give up. It&#39;s the best feature I built.</title>
+      <link>http://localhost:1313/posts/teaching-ai-to-give-up/</link>
+      <pubDate>Mon, 08 Jun 2026 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/posts/teaching-ai-to-give-up/</guid>
+      <description>&lt;p&gt;Quick context: I built a system that runs structured interviews. A user has a conversation with an LLM about a topic — an internal intake, a due-diligence questionnaire, a structured assessment — and on the other side comes a structured record. Every required field is filled, partially filled, or explicitly marked as &amp;ldquo;we couldn&amp;rsquo;t determine this.&amp;rdquo; Conversational on top, schema-driven underneath.&lt;/p&gt;
+&lt;p&gt;I inherited an agent. Hundreds of lines of prompt, written by hands that had since moved on. Rules referencing bugs I&amp;rsquo;d never heard of. Three different definitions of &amp;ldquo;done,&amp;rdquo; each one valid depending on which paragraph you stopped at. I tuned it the way you tune any prompt you didn&amp;rsquo;t write — adding clauses on top, hoping, never sure which one was load-bearing.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

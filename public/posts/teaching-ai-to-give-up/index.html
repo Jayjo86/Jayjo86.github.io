@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>I taught an AI to give up. It&#39;s the best feature I built. | Juergen Neulinger</title>
+<meta name="keywords" content="llm, architecture, engineering, state-machine">
+<meta name="description" content="Quick context: I built a system that runs structured interviews. A user has a conversation with an LLM about a topic — an internal intake, a due-diligence questionnaire, a structured assessment — and on the other side comes a structured record. Every required field is filled, partially filled, or explicitly marked as &ldquo;we couldn&rsquo;t determine this.&rdquo; Conversational on top, schema-driven underneath.
+I inherited an agent. Hundreds of lines of prompt, written by hands that had since moved on. Rules referencing bugs I&rsquo;d never heard of. Three different definitions of &ldquo;done,&rdquo; each one valid depending on which paragraph you stopped at. I tuned it the way you tune any prompt you didn&rsquo;t write — adding clauses on top, hoping, never sure which one was load-bearing.">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/posts/teaching-ai-to-give-up/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.89ca4972ab5e6aaa05e9a0dae0c4bb64b26585bc79e36f5cf33614eea0283abe.css" integrity="sha256-icpJcqteaqoF6aDa4MS7ZLJlhbx5429c8zYU7qAoOr4=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/teaching-ai-to-give-up/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Juergen Neulinger (Alt + H)">Juergen Neulinger</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="http://localhost:1313/posts/" title="Posts">
+                    <span>Posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/about/" title="About">
+                    <span>About</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      I taught an AI to give up. It&#39;s the best feature I built.
+      <span class="entry-hint" title="Draft">
+        <svg xmlns="http://www.w3.org/2000/svg" height="35" viewBox="0 -960 960 960" fill="currentColor">
+          <path
+            d="M160-410v-60h300v60H160Zm0-165v-60h470v60H160Zm0-165v-60h470v60H160Zm360 580v-123l221-220q9-9 20-13t22-4q12 0 23 4.5t20 13.5l37 37q9 9 13 20t4 22q0 11-4.5 22.5T862.09-380L643-160H520Zm300-263-37-37 37 37ZM580-220h38l121-122-18-19-19-18-122 121v38Zm141-141-19-18 37 37-18-19Z" />
+        </svg>
+      </span>
+    </h1>
+    <div class="post-meta">
+
+<span title='2026-06-08 00:00:00 +0000 UTC'>June 8, 2026</span>&nbsp;·&nbsp;<span>9 min</span>
+
+</div>
+  </header> <details class="toc" >
+    <summary accesskey="c" title="(Alt + C)">
+        <span class="title">Table of Contents</span>
+    </summary>
+
+    <div class="inner"><ul>
+            <li>
+                <a href="#rule-0-the-llm-is-a-function-not-the-agent" aria-label="Rule 0: the LLM is a function, not the agent">Rule 0: the LLM is a function, not the agent</a></li>
+            <li>
+                <a href="#rule-1-the-loop-is-boring-on-purpose" aria-label="Rule 1: the loop is boring on purpose">Rule 1: the loop is boring on purpose</a></li>
+            <li>
+                <a href="#rule-2-every-field-has-a-graceful-exit" aria-label="Rule 2: every field has a graceful exit">Rule 2: every field has a graceful exit</a></li>
+            <li>
+                <a href="#the-features-im-a-little-smug-about" aria-label="The features I&rsquo;m a little smug about">The features I&rsquo;m a little smug about</a></li>
+            <li>
+                <a href="#the-parts-id-warn-you-about" aria-label="The parts I&rsquo;d warn you about">The parts I&rsquo;d warn you about</a></li>
+            <li>
+                <a href="#whats-portable" aria-label="What&rsquo;s portable">What&rsquo;s portable</a>
+            </li>
+        </ul>
+    </div>
+</details>
+
+  <div class="post-content md-content"><p>Quick context: I built a system that runs structured interviews. A user has a conversation with an LLM about a topic — an internal intake, a due-diligence questionnaire, a structured assessment — and on the other side comes a structured record. Every required field is filled, partially filled, or explicitly marked as &ldquo;we couldn&rsquo;t determine this.&rdquo; Conversational on top, schema-driven underneath.</p>
+<p>I inherited an agent. Hundreds of lines of prompt, written by hands that had since moved on. Rules referencing bugs I&rsquo;d never heard of. Three different definitions of &ldquo;done,&rdquo; each one valid depending on which paragraph you stopped at. I tuned it the way you tune any prompt you didn&rsquo;t write — adding clauses on top, hoping, never sure which one was load-bearing.</p>
+<p>Most days, the agent worked. Best on Tuesdays — I never figured out why. Then one Tuesday, the same input produced two different artifacts. Then a third one I&rsquo;d never seen before.</p>
+<p>That was the moment for change. It was time to apply Schumpeter&rsquo;s creative destruction — clear away the old and allow something new to emerge.</p>
+<p>What I have now is structurally the opposite. It&rsquo;s a state machine, a schema, and an LLM doing two small jobs. From the user&rsquo;s side, nothing changed. Everything underneath looks different, and I&rsquo;d ship the new shape on day one of the next project.</p>
+<blockquote>
+<p>The code in this post is simplified illustration — sketches that show the <em>shape</em> of the pattern, not production source.</p>
+</blockquote>
+<h2 id="rule-0-the-llm-is-a-function-not-the-agent">Rule 0: the LLM is a function, not the agent<a hidden class="anchor" aria-hidden="true" href="#rule-0-the-llm-is-a-function-not-the-agent">#</a></h2>
+<p>The LLM now does exactly two things. <strong>Generate the next question.</strong> <strong>Extract field values from the response.</strong> That&rsquo;s the whole job. What to ask, when to stop, what to defer, what the artifact looks like — all of that moved into code, where I can put a breakpoint on it.</p>
+<pre class="mermaid">flowchart LR
+User[User] --> SM[State machine]
+SM --> Q[LLM: ask next question]
+Q --> SM
+SM --> X[LLM: extract field values]
+X --> SM
+SM --> S[(Schema state)]
+S --> A[Structured artifact]
+</pre>
+<p>There&rsquo;s a name for this. It&rsquo;s called &ldquo;writing software.&rdquo;</p>
+<p>The contract is small enough to fit in your head. The entire surface area the system asks of any LLM backend is two methods:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">LLMClient</span><span class="p">(</span><span class="n">Protocol</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="k">async</span> <span class="k">def</span> <span class="nf">ask</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">messages</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="s2">&#34;&#34;&#34;Return the next question, as text.&#34;&#34;&#34;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">async</span> <span class="k">def</span> <span class="nf">extract</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">messages</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">json_schema</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="s2">&#34;&#34;&#34;Return structured field values, constrained by a JSON schema.&#34;&#34;&#34;</span>
+</span></span></code></pre></div><p>Swapping providers is a new adapter, not a rewrite. The model is a dependency, not the architecture.</p>
+<h2 id="rule-1-the-loop-is-boring-on-purpose">Rule 1: the loop is boring on purpose<a hidden class="anchor" aria-hidden="true" href="#rule-1-the-loop-is-boring-on-purpose">#</a></h2>
+<pre class="mermaid">flowchart TD
+Start([Start session]) --> Ask[Ask next question]
+Ask --> Wait[User responds]
+Wait --> Extract[LLM extracts field values]
+Extract --> Update[Update field statuses]
+Update --> Stall{Stalled?}
+Stall -- yes --> Defer[Defer stuck fields]
+Stall -- no --> Cover{Coverage ≥ threshold?}
+Defer --> Cover
+Cover -- no --> Ask
+Cover -- yes --> Done([Emit structured artifact])
+</pre>
+<p>Ask, extract, update, decide. That&rsquo;s the entire interview. Here&rsquo;s the turn handler — and notice there&rsquo;s nothing clever in it:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">async</span> <span class="k">def</span> <span class="nf">handle_user_input</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">user_text</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="n">record_turn</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">user_text</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="c1"># extract → detect stalls → snapshot coverage</span>
+</span></span><span class="line"><span class="cl">    <span class="n">before</span> <span class="o">=</span> <span class="n">snapshot_field_state</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">apply_extraction</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="k">await</span> <span class="n">extract</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">user_text</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">    <span class="n">detect_and_defer_stalls</span><span class="p">(</span><span class="n">session</span><span class="p">,</span> <span class="n">before</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="n">record_coverage</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">route</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+</span></span></code></pre></div><p>And the routing — the part that decides whether the interview is over — is just a sequence of boolean checks against the schema:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">route</span><span class="p">(</span><span class="n">session</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="n">session</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">is_complete</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="n">finish</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="n">session</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">is_blocked</span><span class="p">:</span>          <span class="c1"># everything left has been deferred</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="n">block</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="n">session</span><span class="o">.</span><span class="n">turn_number</span> <span class="o">&gt;=</span> <span class="n">MAX_TURNS</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="n">finish</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">ask_next_question</span><span class="p">(</span><span class="n">session</span><span class="p">)</span>
+</span></span></code></pre></div><p>Coverage is a float. Completion is a threshold. Stall is a counter. None of it is impressive on a slide. All of it is testable on a Tuesday.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">coverage_score</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">scorable</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">schema</span><span class="o">.</span><span class="n">required_fields</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">status</span> <span class="o">!=</span> <span class="n">NOT_APPLICABLE</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">    <span class="k">if</span> <span class="ow">not</span> <span class="n">scorable</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="mf">1.0</span>
+</span></span><span class="line"><span class="cl">    <span class="n">points</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="mf">1.0</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">COMPLETE</span> <span class="k">else</span> <span class="mf">0.5</span> <span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">PARTIAL</span> <span class="k">else</span> <span class="mf">0.0</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">scorable</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">points</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">scorable</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">is_complete</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">coverage_score</span><span class="p">(</span><span class="n">schema</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">schema</span><span class="o">.</span><span class="n">threshold</span>
+</span></span><span class="line"><span class="cl">        <span class="ow">and</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">status</span> <span class="o">==</span> <span class="n">MISSING</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">schema</span><span class="o">.</span><span class="n">required_fields</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span></code></pre></div><p>I will fight for boring loops. The one place I want surprise in this system is the language the model produces, not the control flow. Surprising control flow in production is the engineering equivalent of a smoke alarm going off at 3am — and the smoke alarm is right.</p>
+<h2 id="rule-2-every-field-has-a-graceful-exit">Rule 2: every field has a graceful exit<a hidden class="anchor" aria-hidden="true" href="#rule-2-every-field-has-a-graceful-exit">#</a></h2>
+<pre class="mermaid">stateDiagram-v2
+[*] --> MISSING
+MISSING --> PARTIAL: some signal
+MISSING --> COMPLETE: full answer
+PARTIAL --> COMPLETE: follow-up fills gap
+MISSING --> DEFERRED: stalled
+PARTIAL --> DEFERRED: stalled
+COMPLETE --> [*]
+DEFERRED --> [*]
+</pre>
+<p>Every field&rsquo;s life is one enum:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">FieldStatus</span><span class="p">(</span><span class="n">StrEnum</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="n">MISSING</span>        <span class="o">=</span> <span class="s2">&#34;missing&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">PARTIAL</span>        <span class="o">=</span> <span class="s2">&#34;partial&#34;</span>      <span class="c1"># some info, but not enough</span>
+</span></span><span class="line"><span class="cl">    <span class="n">COMPLETE</span>       <span class="o">=</span> <span class="s2">&#34;complete&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">DEFERRED</span>       <span class="o">=</span> <span class="s2">&#34;deferred&#34;</span>     <span class="c1"># gave up on purpose — recorded as &#34;couldn&#39;t determine&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="n">NOT_APPLICABLE</span> <span class="o">=</span> <span class="s2">&#34;n/a&#34;</span>
+</span></span></code></pre></div><p>Look at <code>DEFERRED</code>. That state is the most useful thing on this whole diagram. The previous version would chase a single missing detail forever because no one had told it that giving up was an option. The current version notices when nothing is changing, writes &ldquo;we couldn&rsquo;t determine X&rdquo; into the artifact on purpose, and moves on.</p>
+<p>&ldquo;Notices when nothing is changing&rdquo; isn&rsquo;t a vibe — it&rsquo;s a counter per field group. A group &ldquo;improved&rdquo; if any field in it changed status or value this turn; if not, the counter ticks. When it hits the threshold, the stuck fields are deferred and the loop moves on:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">tick</span><span class="p">(</span><span class="n">counter</span><span class="p">,</span> <span class="n">group</span><span class="p">,</span> <span class="n">improved</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">counter</span><span class="p">[</span><span class="n">group</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">improved</span> <span class="k">else</span> <span class="n">counter</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">group</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">counter</span><span class="p">[</span><span class="n">group</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1"># when a group makes no progress for N consecutive turns:</span>
+</span></span><span class="line"><span class="cl"><span class="k">if</span> <span class="n">tick</span><span class="p">(</span><span class="n">counter</span><span class="p">,</span> <span class="n">group</span><span class="p">,</span> <span class="n">improved</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">MAX_STALL_TURNS</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">stuck_fields</span><span class="p">(</span><span class="n">group</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">        <span class="n">field</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">FieldStatus</span><span class="o">.</span><span class="n">DEFERRED</span>
+</span></span></code></pre></div><p><code>DEFERRED</code> is also a more honest design than people expect. The reviewer doesn&rsquo;t have to play &ldquo;did the agent finish or did the user wander off?&rdquo; — the artifact tells them.</p>
+<h2 id="the-features-im-a-little-smug-about">The features I&rsquo;m a little smug about<a hidden class="anchor" aria-hidden="true" href="#the-features-im-a-little-smug-about">#</a></h2>
+<p>The interesting stuff isn&rsquo;t the model. It&rsquo;s the scaffolding the small model job lets you build.</p>
+<ul>
+<li>
+<p><strong>Schema-enforced extraction.</strong> The model doesn&rsquo;t return JSON because I asked nicely — it returns JSON because the API contract makes any other shape impossible. The response schema is built from exactly the fields in play, with <code>additionalProperties: false</code> so the provider rejects drift, confidence bounded to <code>[0, 1]</code>, and status constrained to the enum:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">schema</span> <span class="o">=</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;type&#34;</span><span class="p">:</span> <span class="s2">&#34;object&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;additionalProperties&#34;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>            <span class="c1"># no surprise keys</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;required&#34;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&#34;values&#34;</span><span class="p">,</span> <span class="s2">&#34;confidences&#34;</span><span class="p">,</span> <span class="s2">&#34;statuses&#34;</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;properties&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="s2">&#34;values&#34;</span><span class="p">:</span>      <span class="p">{</span><span class="s2">&#34;type&#34;</span><span class="p">:</span> <span class="s2">&#34;object&#34;</span><span class="p">,</span> <span class="s2">&#34;additionalProperties&#34;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s2">&#34;properties&#34;</span><span class="p">:</span> <span class="n">value_props</span><span class="p">},</span>
+</span></span><span class="line"><span class="cl">        <span class="s2">&#34;confidences&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="s2">&#34;type&#34;</span><span class="p">:</span> <span class="s2">&#34;object&#34;</span><span class="p">,</span> <span class="s2">&#34;additionalProperties&#34;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="s2">&#34;properties&#34;</span><span class="p">:</span> <span class="p">{</span><span class="n">fid</span><span class="p">:</span> <span class="p">{</span><span class="s2">&#34;type&#34;</span><span class="p">:</span> <span class="s2">&#34;number&#34;</span><span class="p">,</span> <span class="s2">&#34;minimum&#34;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&#34;maximum&#34;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span> <span class="k">for</span> <span class="n">fid</span> <span class="ow">in</span> <span class="n">field_ids</span><span class="p">},</span>
+</span></span><span class="line"><span class="cl">        <span class="p">},</span>
+</span></span><span class="line"><span class="cl">        <span class="s2">&#34;statuses&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">            <span class="s2">&#34;type&#34;</span><span class="p">:</span> <span class="s2">&#34;object&#34;</span><span class="p">,</span> <span class="s2">&#34;additionalProperties&#34;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">            <span class="s2">&#34;properties&#34;</span><span class="p">:</span> <span class="p">{</span><span class="n">fid</span><span class="p">:</span> <span class="p">{</span><span class="s2">&#34;type&#34;</span><span class="p">:</span> <span class="s2">&#34;string&#34;</span><span class="p">,</span> <span class="s2">&#34;enum&#34;</span><span class="p">:</span> <span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">value</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">FieldStatus</span><span class="p">]}</span> <span class="k">for</span> <span class="n">fid</span> <span class="ow">in</span> <span class="n">field_ids</span><span class="p">},</span>
+</span></span><span class="line"><span class="cl">        <span class="p">},</span>
+</span></span><span class="line"><span class="cl">    <span class="p">},</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>Enforced at the provider, not in my prompt.</p>
+</li>
+<li>
+<p><strong>Schema swap on load.</strong> Sessions persist runtime state, not schemas. The schema itself is fetched fresh from a registry on every load, and the stored field values are <em>overlaid</em> onto it:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">apply_saved_state</span><span class="p">(</span><span class="n">schema</span><span class="p">,</span> <span class="n">saved</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;&#34;&#34;Overlay saved runtime state onto a freshly-loaded schema.&#34;&#34;&#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">schema</span><span class="o">.</span><span class="n">fields</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">state</span> <span class="o">=</span> <span class="n">saved</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="n">state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="k">continue</span>                  <span class="c1"># untouched field keeps its default (MISSING)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">field</span><span class="o">.</span><span class="n">value</span>      <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&#34;value&#34;</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">        <span class="n">field</span><span class="o">.</span><span class="n">status</span>     <span class="o">=</span> <span class="n">FieldStatus</span><span class="p">(</span><span class="n">state</span><span class="p">[</span><span class="s2">&#34;status&#34;</span><span class="p">])</span>
+</span></span><span class="line"><span class="cl">        <span class="n">field</span><span class="o">.</span><span class="n">confidence</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="s2">&#34;confidence&#34;</span><span class="p">]</span>
+</span></span></code></pre></div><p>Translation: I can fix a question&rsquo;s wording on Wednesday afternoon, and the interview somebody started Wednesday morning picks it up on the next turn. No migrations. No broken-in-flight nightmares.</p>
+</li>
+<li>
+<p><strong>Trace viewer.</strong> Every prompt and every response is captured to a JSONL file and rendered as an HTML timeline. The day you have a trace viewer is the day you stop arguing about what the model &ldquo;probably&rdquo; did. You point at the timeline. The argument ends.</p>
+</li>
+<li>
+<p><strong>Streaming end to end.</strong> Tokens arrive live, then a structured progress event, then the next question, all over Server-Sent Events. The chat feel and the structured contract ride the same transport. The frontend does not have to choose.</p>
+</li>
+<li>
+<p><strong>Synthetic users.</strong> Tests run against simulated personas — cooperative, evasive, confused. Each persona is an LLM prompted with a fixed goal and a behaviour profile, which keeps the simulation deterministic enough to be useful in CI:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="n">EVASIVE</span> <span class="o">=</span> <span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;Deflect specific questions when you can. Use vague language — &#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;&#39;that&#39;s still being figured out&#39;, &#39;someone else handles that&#39;. &#34;</span>
+</span></span><span class="line"><span class="cl">    <span class="s2">&#34;Don&#39;t lie; just give minimal, vague answers.&#34;</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span></code></pre></div><p>A persona can even <em>know</em> a value but refuse to share it until pressed — which is how I test whether the agent persists on required fields without looping forever. These tests catch a class of failure unit tests can&rsquo;t see, because unit tests don&rsquo;t know how to be evasive.</p>
+</li>
+<li>
+<p><strong>Scripted backbone, generated follow-ups.</strong> Author the questions you care about; let the model generate the rest. The engine reaches for a scripted question first and only generates from the schema&rsquo;s gaps when the script runs out:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="k">if</span> <span class="n">session</span><span class="o">.</span><span class="n">scripted_questions</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">present</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">scripted_questions</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>   <span class="c1"># author-controlled backbone</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="n">gap</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">schema</span><span class="o">.</span><span class="n">largest_gap_group</span><span class="p">()</span>                <span class="c1"># script exhausted</span>
+</span></span><span class="line"><span class="cl"><span class="k">return</span> <span class="n">generate_question_for</span><span class="p">(</span><span class="n">gap</span><span class="p">)</span>                        <span class="c1"># model fills the rest</span>
+</span></span></code></pre></div><p>Pure scripted is rigid, pure generated drifts; the mix is where it works.</p>
+</li>
+<li>
+<p><strong>One engine, three surfaces.</strong> The same core runs an interactive CLI, a streaming REST API, and an experiment runner. New surface = thin layer over the same engine. I have shipped systems where this was not true. I do not recommend those systems.</p>
+</li>
+</ul>
+<h2 id="the-parts-id-warn-you-about">The parts I&rsquo;d warn you about<a hidden class="anchor" aria-hidden="true" href="#the-parts-id-warn-you-about">#</a></h2>
+<p>The state machine moves complexity. It does not remove it. The schema now needs versioning, owners, and a review process. Schemas are nicer to read than prompts; they are not free.</p>
+<p>Schemas force you to specify the goal upfront. That&rsquo;s a feature when the domain is well-defined. It&rsquo;s a footgun when the right answer is &ldquo;it depends, and the dependency only became clear at turn six.&rdquo; If your problem is genuinely emergent, this is the wrong shape.</p>
+<p>Self-reported LLM confidence is not confidence. The schema <em>collects</em> a confidence value per field, bounded to <code>[0, 1]</code> — but I treat it as a relative signal between fields in a single call, not as a probability of correctness. I don&rsquo;t gate decisions on it. If you do, you will eventually learn not to, in a way that is worse than reading this paragraph.</p>
+<p>One more thing this isn&rsquo;t: a multi-agent system, an autonomous workflow with tool calls, or &ldquo;an agent&rdquo; in the sense most LinkedIn posts use that word. The LLM here is the smallest piece — it generates a question, it extracts fields, that&rsquo;s the contract. If your problem needs the model to plan, call APIs, branch on the results, and chain those calls into more calls, you want a different shape entirely. There&rsquo;s nothing wrong with that shape. It&rsquo;s just not this one.</p>
+<h2 id="whats-portable">What&rsquo;s portable<a hidden class="anchor" aria-hidden="true" href="#whats-portable">#</a></h2>
+<p>The pattern — declared schema, narrow LLM jobs, state in code — generalizes well past where I started. Anywhere structured data has to come out of a conversation with a person who doesn&rsquo;t think in fields, this shape works. I&rsquo;m seeing it pulled into use cases I didn&rsquo;t design for, which is the cheapest possible signal that the abstraction is the right one.</p>
+<p>The hard part, every time, is the spec. Not the model. Not the prompts. Not the framework. Deciding ahead of time exactly what you want to know — and being honest about what you don&rsquo;t — is where the project lives or dies. The LLM just shows up afterward and does the typing.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:1313/tags/llm/">Llm</a></li>
+      <li><a href="http://localhost:1313/tags/architecture/">Architecture</a></li>
+      <li><a href="http://localhost:1313/tags/engineering/">Engineering</a></li>
+      <li><a href="http://localhost:1313/tags/state-machine/">State-Machine</a></li>
+    </ul>
+
+<ul class="share-buttons">
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share I taught an AI to give up. It&#39;s the best feature I built. on x"
+            href="https://x.com/intent/tweet/?text=I%20taught%20an%20AI%20to%20give%20up.%20It%27s%20the%20best%20feature%20I%20built.&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2fteaching-ai-to-give-up%2f&amp;hashtags=llm%2carchitecture%2cengineering%2cstate-machine">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M512 62.554 L 512 449.446 C 512 483.97 483.97 512 449.446 512 L 62.554 512 C 28.03 512 0 483.97 0 449.446 L 0 62.554 C 0 28.03 28.029 0 62.554 0 L 449.446 0 C 483.971 0 512 28.03 512 62.554 Z M 269.951 190.75 L 182.567 75.216 L 56 75.216 L 207.216 272.95 L 63.9 436.783 L 125.266 436.783 L 235.9 310.383 L 332.567 436.783 L 456 436.783 L 298.367 228.367 L 432.367 75.216 L 371.033 75.216 Z M 127.633 110 L 164.101 110 L 383.481 400.065 L 349.5 400.065 Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share I taught an AI to give up. It&#39;s the best feature I built. on linkedin"
+            href="https://www.linkedin.com/shareArticle?mini=true&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2fteaching-ai-to-give-up%2f&amp;title=I%20taught%20an%20AI%20to%20give%20up.%20It%27s%20the%20best%20feature%20I%20built.&amp;summary=I%20taught%20an%20AI%20to%20give%20up.%20It%27s%20the%20best%20feature%20I%20built.&amp;source=http%3a%2f%2flocalhost%3a1313%2fposts%2fteaching-ai-to-give-up%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-288.985,423.278l0,-225.717l-75.04,0l0,225.717l75.04,0Zm270.539,0l0,-129.439c0,-69.333 -37.018,-101.586 -86.381,-101.586c-39.804,0 -57.634,21.891 -67.617,37.266l0,-31.958l-75.021,0c0.995,21.181 0,225.717 0,225.717l75.02,0l0,-126.056c0,-6.748 0.486,-13.492 2.474,-18.315c5.414,-13.475 17.767,-27.434 38.494,-27.434c27.135,0 38.007,20.707 38.007,51.037l0,120.768l75.024,0Zm-307.552,-334.556c-25.674,0 -42.448,16.879 -42.448,39.002c0,21.658 16.264,39.002 41.455,39.002l0.484,0c26.165,0 42.452,-17.344 42.452,-39.002c-0.485,-22.092 -16.241,-38.954 -41.943,-39.002Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share I taught an AI to give up. It&#39;s the best feature I built. on reddit"
+            href="https://reddit.com/submit?url=http%3a%2f%2flocalhost%3a1313%2fposts%2fteaching-ai-to-give-up%2f&title=I%20taught%20an%20AI%20to%20give%20up.%20It%27s%20the%20best%20feature%20I%20built.">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-3.446,265.638c0,-22.964 -18.616,-41.58 -41.58,-41.58c-11.211,0 -21.361,4.457 -28.841,11.666c-28.424,-20.508 -67.586,-33.757 -111.204,-35.278l18.941,-89.121l61.884,13.157c0.756,15.734 13.642,28.29 29.56,28.29c16.407,0 29.706,-13.299 29.706,-29.701c0,-16.403 -13.299,-29.702 -29.706,-29.702c-11.666,0 -21.657,6.792 -26.515,16.578l-69.105,-14.69c-1.922,-0.418 -3.939,-0.042 -5.585,1.036c-1.658,1.073 -2.811,2.761 -3.224,4.686l-21.152,99.438c-44.258,1.228 -84.046,14.494 -112.837,35.232c-7.468,-7.164 -17.589,-11.591 -28.757,-11.591c-22.965,0 -41.585,18.616 -41.585,41.58c0,16.896 10.095,31.41 24.568,37.918c-0.639,4.135 -0.99,8.328 -0.99,12.576c0,63.977 74.469,115.836 166.33,115.836c91.861,0 166.334,-51.859 166.334,-115.836c0,-4.218 -0.347,-8.387 -0.977,-12.493c14.564,-6.47 24.735,-21.034 24.735,-38.001Zm-119.474,108.193c-20.27,20.241 -59.115,21.816 -70.534,21.816c-11.428,0 -50.277,-1.575 -70.522,-21.82c-3.007,-3.008 -3.007,-7.882 0,-10.889c3.003,-2.999 7.882,-3.003 10.885,0c12.777,12.781 40.11,17.317 59.637,17.317c19.522,0 46.86,-4.536 59.657,-17.321c3.016,-2.999 7.886,-2.995 10.885,0.008c3.008,3.011 3.003,7.882 -0.008,10.889Zm-5.23,-48.781c-16.373,0 -29.701,-13.324 -29.701,-29.698c0,-16.381 13.328,-29.714 29.701,-29.714c16.378,0 29.706,13.333 29.706,29.714c0,16.374 -13.328,29.698 -29.706,29.698Zm-160.386,-29.702c0,-16.381 13.328,-29.71 29.714,-29.71c16.369,0 29.689,13.329 29.689,29.71c0,16.373 -13.32,29.693 -29.689,29.693c-16.386,0 -29.714,-13.32 -29.714,-29.693Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share I taught an AI to give up. It&#39;s the best feature I built. on facebook"
+            href="https://facebook.com/sharer/sharer.php?u=http%3a%2f%2flocalhost%3a1313%2fposts%2fteaching-ai-to-give-up%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-106.468,0l0,-192.915l66.6,0l12.672,-82.621l-79.272,0l0,-53.617c0,-22.603 11.073,-44.636 46.58,-44.636l36.042,0l0,-70.34c0,0 -32.71,-5.582 -63.982,-5.582c-65.288,0 -107.96,39.569 -107.96,111.204l0,62.971l-72.573,0l0,82.621l72.573,0l0,192.915l-191.104,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share I taught an AI to give up. It&#39;s the best feature I built. on whatsapp"
+            href="https://api.whatsapp.com/send?text=I%20taught%20an%20AI%20to%20give%20up.%20It%27s%20the%20best%20feature%20I%20built.%20-%20http%3a%2f%2flocalhost%3a1313%2fposts%2fteaching-ai-to-give-up%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-58.673,127.703c-33.842,-33.881 -78.847,-52.548 -126.798,-52.568c-98.799,0 -179.21,80.405 -179.249,179.234c-0.013,31.593 8.241,62.428 23.927,89.612l-25.429,92.884l95.021,-24.925c26.181,14.28 55.659,21.807 85.658,21.816l0.074,0c98.789,0 179.206,-80.413 179.247,-179.243c0.018,-47.895 -18.61,-92.93 -52.451,-126.81Zm-126.797,275.782l-0.06,0c-26.734,-0.01 -52.954,-7.193 -75.828,-20.767l-5.441,-3.229l-56.386,14.792l15.05,-54.977l-3.542,-5.637c-14.913,-23.72 -22.791,-51.136 -22.779,-79.287c0.033,-82.142 66.867,-148.971 149.046,-148.971c39.793,0.014 77.199,15.531 105.329,43.692c28.128,28.16 43.609,65.592 43.594,105.4c-0.034,82.149 -66.866,148.983 -148.983,148.984Zm81.721,-111.581c-4.479,-2.242 -26.499,-13.075 -30.604,-14.571c-4.105,-1.495 -7.091,-2.241 -10.077,2.241c-2.986,4.483 -11.569,14.572 -14.182,17.562c-2.612,2.988 -5.225,3.364 -9.703,1.12c-4.479,-2.241 -18.91,-6.97 -36.017,-22.23c-13.314,-11.876 -22.304,-26.542 -24.916,-31.026c-2.612,-4.484 -0.279,-6.908 1.963,-9.14c2.016,-2.007 4.48,-5.232 6.719,-7.847c2.24,-2.615 2.986,-4.484 4.479,-7.472c1.493,-2.99 0.747,-5.604 -0.374,-7.846c-1.119,-2.241 -10.077,-24.288 -13.809,-33.256c-3.635,-8.733 -7.327,-7.55 -10.077,-7.688c-2.609,-0.13 -5.598,-0.158 -8.583,-0.158c-2.986,0 -7.839,1.121 -11.944,5.604c-4.105,4.484 -15.675,15.32 -15.675,37.364c0,22.046 16.048,43.342 18.287,46.332c2.24,2.99 31.582,48.227 76.511,67.627c10.685,4.615 19.028,7.371 25.533,9.434c10.728,3.41 20.492,2.929 28.209,1.775c8.605,-1.285 26.499,-10.833 30.231,-21.295c3.732,-10.464 3.732,-19.431 2.612,-21.298c-1.119,-1.869 -4.105,-2.99 -8.583,-5.232Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share I taught an AI to give up. It&#39;s the best feature I built. on telegram"
+            href="https://telegram.me/share/url?text=I%20taught%20an%20AI%20to%20give%20up.%20It%27s%20the%20best%20feature%20I%20built.&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2fteaching-ai-to-give-up%2f">
+            <svg version="1.1" xml:space="preserve" viewBox="2 2 28 28" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M26.49,29.86H5.5a3.37,3.37,0,0,1-2.47-1,3.35,3.35,0,0,1-1-2.47V5.48A3.36,3.36,0,0,1,3,3,3.37,3.37,0,0,1,5.5,2h21A3.38,3.38,0,0,1,29,3a3.36,3.36,0,0,1,1,2.46V26.37a3.35,3.35,0,0,1-1,2.47A3.38,3.38,0,0,1,26.49,29.86Zm-5.38-6.71a.79.79,0,0,0,.85-.66L24.73,9.24a.55.55,0,0,0-.18-.46.62.62,0,0,0-.41-.17q-.08,0-16.53,6.11a.59.59,0,0,0-.41.59.57.57,0,0,0,.43.52l4,1.24,1.61,4.83a.62.62,0,0,0,.63.43.56.56,0,0,0,.4-.17L16.54,20l4.09,3A.9.9,0,0,0,21.11,23.15ZM13.8,20.71l-1.21-4q8.72-5.55,8.78-5.55c.15,0,.23,0,.23.16a.18.18,0,0,1,0,.06s-2.51,2.3-7.52,6.8Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share I taught an AI to give up. It&#39;s the best feature I built. on ycombinator"
+            href="https://news.ycombinator.com/submitlink?t=I%20taught%20an%20AI%20to%20give%20up.%20It%27s%20the%20best%20feature%20I%20built.&u=http%3a%2f%2flocalhost%3a1313%2fposts%2fteaching-ai-to-give-up%2f">
+            <svg version="1.1" xml:space="preserve" width="30px" height="30px" viewBox="0 0 512 512" fill="currentColor"
+                xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+                <path
+                    d="M449.446 0C483.971 0 512 28.03 512 62.554L512 449.446C512 483.97 483.97 512 449.446 512L62.554 512C28.03 512 0 483.97 0 449.446L0 62.554C0 28.03 28.029 0 62.554 0L449.446 0ZM183.8767 87.9921H121.8427L230.6673 292.4508V424.0079H281.3328V292.4508L390.1575 87.9921H328.1233L256 238.2489z" />
+            </svg>
+        </a>
+    </li>
+</ul>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">Juergen Neulinger</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true });
+</script>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
+        } else {
+            toplink.classList.add("hidden");
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>
