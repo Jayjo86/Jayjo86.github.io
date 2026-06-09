@@ -1,7 +1,8 @@
 ---
 title: "I taught an AI to give up. It's the best feature I built."
+description: "Rebuilding a prompt-based interview agent as a state machine, a schema, and two narrow LLM jobs."
 date: 2026-06-08
-draft: true
+draft: false
 tags: ["llm", "architecture", "engineering", "state-machine"]
 ---
 Quick context: I built a system that runs structured interviews. A user has a conversation with an LLM about a topic — an internal intake, a due-diligence questionnaire, a structured assessment — and on the other side comes a structured record. Every required field is filled, partially filled, or explicitly marked as "we couldn't determine this." Conversational on top, schema-driven underneath.
