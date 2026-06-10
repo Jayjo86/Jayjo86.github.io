@@ -4,6 +4,10 @@ description: "Rebuilding a prompt-based interview agent as a state machine, a sc
 date: 2026-06-08
 draft: false
 tags: ["llm", "architecture", "engineering", "state-machine"]
+cover:
+  image: "images/og-give-up.png"
+  alt: "I taught an AI to give up — a state machine with a DEFERRED state"
+  hiddenInSingle: true
 ---
 Quick context: I built a system that runs structured interviews. A user has a conversation with an LLM about a topic — an internal intake, a due-diligence questionnaire, a structured assessment — and on the other side comes a structured record. Every required field is filled, partially filled, or explicitly marked as "we couldn't determine this." Conversational on top, schema-driven underneath.
 

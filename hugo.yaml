@@ -17,6 +17,9 @@ params:
   ShowShareButtons: true
   ShowCodeCopyButtons: true
   ShowToc: true
+  description: "Engineering notes by Juergen Neulinger — LLMs, architecture, and the software in between."
+  images:
+    - "images/og-give-up.png"
   socialIcons:
     - name: linkedin
       url: "https://linkedin.com/in/juergen-neulinger"
