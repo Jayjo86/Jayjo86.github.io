@@ -11,8 +11,15 @@
     </image>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 08 Jun 2026 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 24 Jun 2026 09:15:45 +0200</lastBuildDate>
     <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Audit Log Is the Product</title>
+      <link>http://localhost:1313/posts/audit-log-is-the-product/</link>
+      <pubDate>Wed, 24 Jun 2026 09:15:45 +0200</pubDate>
+      <guid>http://localhost:1313/posts/audit-log-is-the-product/</guid>
+      <description></description>
+    </item>
     <item>
       <title>I taught an AI to give up. It&#39;s the best feature I built.</title>
       <link>http://localhost:1313/posts/teaching-ai-to-give-up/</link>

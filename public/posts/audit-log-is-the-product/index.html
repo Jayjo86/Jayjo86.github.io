@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Audit Log Is the Product | Juergen Neulinger</title>
+<meta name="keywords" content="compliance, durable-execution, architecture, temporal, dbos, regulation">
+<meta name="description" content="In a regulated environment, the audit trail has the same status as the feature. The durable execution engine you pick settles where your evidence commits — before you write a line of compliance code.">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/posts/audit-log-is-the-product/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.89ca4972ab5e6aaa05e9a0dae0c4bb64b26585bc79e36f5cf33614eea0283abe.css" integrity="sha256-icpJcqteaqoF6aDa4MS7ZLJlhbx5429c8zYU7qAoOr4=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/audit-log-is-the-product/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Juergen Neulinger (Alt + H)">Juergen Neulinger</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="http://localhost:1313/posts/" title="Posts">
+                    <span>Posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/about/" title="About">
+                    <span>About</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      Audit Log Is the Product
+    </h1>
+    <div class="post-description">
+      In a regulated environment, the audit trail has the same status as the feature. The durable execution engine you pick settles where your evidence commits — before you write a line of compliance code.
+    </div>
+    <div class="post-meta">
+
+<span title='2026-06-24 00:00:00 +0000 UTC'>June 24, 2026</span>&nbsp;·&nbsp;<span>11 min</span>
+
+</div>
+  </header> <details class="toc" >
+    <summary accesskey="c" title="(Alt + C)">
+        <span class="title">Table of Contents</span>
+    </summary>
+
+    <div class="inner"><ul>
+            <li>
+                <a href="#the-audit-log-is-the-product" aria-label="The Audit Log Is the Product">The Audit Log Is the Product</a><ul>
+                    
+            <li>
+                <a href="#agents-are-long-running-transactions" aria-label="Agents are long-running transactions">Agents are long-running transactions</a></li>
+            <li>
+                <a href="#the-trace-is-not-exhaust" aria-label="The trace is not exhaust">The trace is not exhaust</a></li>
+            <li>
+                <a href="#one-question-two-architectures" aria-label="One question, two architectures">One question, two architectures</a></li>
+            <li>
+                <a href="#the-question-that-isnt-on-any-comparison-chart" aria-label="The question that isn&rsquo;t on any comparison chart">The question that isn&rsquo;t on any comparison chart</a></li>
+            <li>
+                <a href="#where-this-argument-breaks" aria-label="Where this argument breaks">Where this argument breaks</a></li>
+            <li>
+                <a href="#the-decision-rule" aria-label="The decision rule">The decision rule</a>
+            </li>
+        </ul>
+        </li>
+        </ul>
+    </div>
+</details>
+
+  <div class="post-content md-content"><h1 id="the-audit-log-is-the-product">The Audit Log Is the Product<a hidden class="anchor" aria-hidden="true" href="#the-audit-log-is-the-product">#</a></h1>
+<p><em>Where your workflow engine keeps its history decides whether your AI system survives an audit. Most teams make that decision by accident.</em></p>
+<hr>
+<p>There&rsquo;s a question that reshapes how you architect AI systems in a bank, and it doesn&rsquo;t come from your users. It comes from an auditor, eighteen months after go-live:</p>
+<p><em>&ldquo;Show me what the system did in this case — and prove that what it recorded is what actually happened.&rdquo;</em></p>
+<p>The first half is easy. Everyone has traces now. The second half hides two questions people conflate: were the record and reality <em>consistent when written</em>, and has the record <em>stayed unaltered since</em>? This piece is about the first — the engine you pick settles it on day one, before you write a line of compliance code, probably without your noticing you decided. The second is a layer you add on top, and I&rsquo;ll come back to it.</p>
+<p>I spent ten years building regulatory reporting systems before I started building AI platforms. The habit that carried over: I read every architecture through the eyes of the person who will eventually have to defend it to a regulator. And by that reading, the most consequential property of an agent system isn&rsquo;t its accuracy, its latency, or its framework. It&rsquo;s where the evidence lives.</p>
+<h2 id="agents-are-long-running-transactions">Agents are long-running transactions<a hidden class="anchor" aria-hidden="true" href="#agents-are-long-running-transactions">#</a></h2>
+<p>Strip the vocabulary away and a production agent workflow is a multi-step process: fetch context, call a model, validate the output, call a tool, wait for a human approval, write a result. It runs for minutes, sometimes days. Any step can fail. The process must survive a pod restart without double-charging anyone or losing its place.</p>
+<p>We&rsquo;ve had a name for this problem for decades — it&rsquo;s a long-running transaction — and the industry has converged on a primitive for it: durable execution. Checkpoint every step, replay on crash, resume exactly where you stopped. Temporal defined the category; DBOS, Restate, and others crowded into it. I&rsquo;ll spend this piece on the two poles — Temporal as the cluster, DBOS as the library — because the axis I care about is sharpest between them; the others sit on the spectrum it defines. The comparisons you&rsquo;ll find online argue about operational cost and developer experience, and they mostly reach the same conclusion: the library is cheaper to run than the cluster.</p>
+<p>That&rsquo;s the wrong axis for my world. In a regulated environment, the interesting property of durable execution isn&rsquo;t that your workflow survives a crash. It&rsquo;s that checkpointing every step produces, as a side effect, a complete record of what the system did.</p>
+<p>In most companies, that record is observability exhaust. In a bank, it&rsquo;s a deliverable.</p>
+<h2 id="the-trace-is-not-exhaust">The trace is not exhaust<a hidden class="anchor" aria-hidden="true" href="#the-trace-is-not-exhaust">#</a></h2>
+<p>This isn&rsquo;t a stylistic preference. It&rsquo;s written down.</p>
+<p>The EU AI Act requires high-risk AI systems to automatically record events over their lifetime (Article 19) — and Article 26(6) puts the retention obligation on <em>deployers</em>, not just providers: keep the logs the system generates, &ldquo;for a period appropriate to the intended purpose &hellip; of at least six months.&rdquo; If you run an AI system inside a bank, that&rsquo;s you, regardless of whose model you call. And the same clause has a sting in its tail for my world specifically: deployers that are financial institutions must maintain those logs <em>as part of the documentation they already keep under Union financial-services law</em>. The regulator isn&rsquo;t asking you to invent a new audit trail — it&rsquo;s telling you the AI system&rsquo;s trace now lives under the same regime as the rest of your books. BCBS 239 adds that the risk data such a workflow touches must be traceable to its source — lineage as a property of the data, not a diagram in Confluence. DORA makes every ICT service supporting a critical function a managed third-party risk, with a register, a contract review, and an exit strategy.</p>
+<p>Read together, these say something uncomfortable: for a regulated AI workflow, the audit trail has the same status as the feature. The agent that processes a payment document and the record proving how it processed it are the same deliverable. If you can ship the first without the second, you haven&rsquo;t shipped.</p>
+<p>Once you accept that, the question for choosing a durable execution engine changes. Not &ldquo;which is cheaper to operate&rdquo; — but:</p>
+<p><strong>Can the trace and the system of record disagree?</strong></p>
+<h2 id="one-question-two-architectures">One question, two architectures<a hidden class="anchor" aria-hidden="true" href="#one-question-two-architectures">#</a></h2>
+<p>Temporal&rsquo;s answer is: yes, briefly, and you reconcile.</p>
+<p>Temporal keeps a complete event history for every workflow — that history <em>is</em> its replay mechanism, and it&rsquo;s genuinely complete. But it lives in Temporal&rsquo;s own persistence, behind its own cluster, in its own trust boundary. Your activity writes a payment row to your Postgres; Temporal records &ldquo;activity completed&rdquo; in its history store. Two systems, two commits, and a window between them. Crash inside that window and the history can say <em>completed</em> while your database says nothing — which is why every Temporal tutorial teaches idempotency keys before it teaches anything else. The discipline works. But notice what it is: a <em>procedure</em> that keeps two systems in agreement. The trace is complete, the data is correct, and their agreement is something you maintain, audit, and occasionally repair.</p>
+<p>I&rsquo;d call this traceable-in-retrospect: you can always reconstruct what happened, provided your reconciliation held.</p>
+<p>DBOS&rsquo;s answer is: for the writes that land in your own database, no — by construction.</p>
+<p>DBOS is a library, not a cluster. Your workflow state checkpoints into the same Postgres your application already runs on. And for steps marked as transactions, the business write and the durability checkpoint commit <em>atomically</em>:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="nd">@DBOS.transaction</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="k">def</span> <span class="nf">write_payment</span><span class="p">(</span><span class="n">record</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="n">DBOS</span><span class="o">.</span><span class="n">sql_session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">        <span class="n">sa</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="s2">&#34;INSERT INTO payments (...) VALUES (...)&#34;</span><span class="p">),</span> <span class="n">record</span>
+</span></span><span class="line"><span class="cl">    <span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># The checkpoint recording that this step completed commits</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># in this same transaction. One commit. There is no state in</span>
+</span></span><span class="line"><span class="cl">    <span class="c1"># which the trace and the payment table disagree.</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="n">record</span><span class="p">[</span><span class="s2">&#34;payment_id&#34;</span><span class="p">]</span>
+</span></span></code></pre></div><p>For that step there is no window and nothing to reconcile. But the guarantee is narrower than &ldquo;the trace and reality can never disagree,&rdquo; and I&rsquo;d rather mark the boundary myself than let an auditor find it: the atomic commit covers <strong>side effects that are writes to the same database.</strong> External calls — the model invocation, the tool call, the API POST — are HTTP, not SQL. They can&rsquo;t join your transaction, so DBOS records their outcome <em>after</em> the call returns, and a crash in between re-runs the step. That&rsquo;s at-least-once, the same idempotency discipline Temporal needs — and on an async stack (FastAPI, asyncpg) it&rsquo;s the <em>only</em> mode available, because <code>@DBOS.transaction</code> is synchronous; the async path uses at-least-once steps throughout.</p>
+<p>So be plain about it: <strong>on external effects, the two engines are the same.</strong> Both record after the fact; both lean on idempotency. The atomic commit only pulls ahead for the writes that land in your own Postgres — the payment row, the decision, the state transition — where the evidence and the record commit together. The model call that <em>informed</em> the decision is recorded at-least-once like everyone&rsquo;s; but that effect was never in your system of record to begin with.</p>
+<p>Which means the real difference isn&rsquo;t atomicity. It&rsquo;s <strong>locality</strong> — and that is the whole argument. The evidence isn&rsquo;t kept <em>about</em> the system of record; it&rsquo;s kept <em>in</em> it: same instance, same backup regime, same access controls your DBA already answers for. That&rsquo;s structural — true regardless of how you serialize, how you query, or whether anyone ever reads it. (It is also not the same as proving nobody edited the record afterward; atomicity is consistency-at-write-time, not tamper-evidence. That&rsquo;s a separate layer, and the subject of the next piece.)</p>
+<p>Locality is not the same as <strong>legibility</strong>, and I want to keep them apart because only one is free. When the auditor asks her question, the answer is a SQL join:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-sql" data-lang="sql"><span class="line"><span class="cl"><span class="k">SELECT</span><span class="w"> </span><span class="n">w</span><span class="p">.</span><span class="n">workflow_uuid</span><span class="p">,</span><span class="w"> </span><span class="n">w</span><span class="p">.</span><span class="n">status</span><span class="p">,</span><span class="w"> </span><span class="n">w</span><span class="p">.</span><span class="n">inputs</span><span class="p">,</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">function_name</span><span class="p">,</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="k">output</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="k">FROM</span><span class="w"> </span><span class="n">dbos</span><span class="p">.</span><span class="n">workflow_status</span><span class="w"> </span><span class="n">w</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="k">JOIN</span><span class="w"> </span><span class="n">dbos</span><span class="p">.</span><span class="n">operation_outputs</span><span class="w"> </span><span class="n">o</span><span class="w"> </span><span class="k">USING</span><span class="w"> </span><span class="p">(</span><span class="n">workflow_uuid</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="k">WHERE</span><span class="w"> </span><span class="n">w</span><span class="p">.</span><span class="n">workflow_uuid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;task-2026-06-0042&#39;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="k">ORDER</span><span class="w"> </span><span class="k">BY</span><span class="w"> </span><span class="n">o</span><span class="p">.</span><span class="n">function_id</span><span class="p">;</span><span class="w">
+</span></span></span></code></pre></div><p>Whether that join returns something an auditor can <em>read</em> is a design choice, not a guarantee. DBOS&rsquo;s default serializer stores base64-encoded pickle — the join returns opaque blobs. To get legible rows you swap in a JSON serializer (and, in my case, write one that handles the types the stock one rejects), and you write your steps to return structured results rather than log sentences. Do that, and the trace of a real workflow looks like this — every decision and effect as a queryable row, in execution order:</p>
+<pre tabindex="0"><code>fn  step                      output
+ 1  classify                  &#34;phase_2&#34;
+ 2  already_migrated          false
+ 3  create_external_session   &#34;2d65cdb7-…&#34;
+ 4  create_internal_session   {…&#34;created&#34;:true}
+ 5  initialize_session_fields  {…&#34;coverage_score&#34;:0.0,&#34;field_states_synced&#34;:27}
+ 6  start_session             {…&#34;context_messages&#34;:38}
+ 7  complete_session          {…&#34;session_status&#34;:&#34;completed&#34;}
+ 8  update_preapproval_date   {…&#34;updated&#34;:false}
+ 9  is_preapproved            false
+</code></pre><p>This is not a reconstructed timeline. It&rsquo;s the workflow&rsquo;s own decision record: the classification (1), the precondition it checked (2), the external session it created (3), and — step 9 — the branch condition that determined it would <em>not</em> proceed to phase 3. Every one a row, in order, in the database I already govern. And the trace is honest about which is which: step 3 is an external call, recorded after the fact (at-least-once); steps 4–8 are local writes.</p>
+<p>So: <strong>locality is by construction; legibility is by configuration.</strong> The first is the argument. The second is the part you have to build — and worth building, but don&rsquo;t sell it as something the engine hands you for free.</p>
+<p>And if you&rsquo;ve read my piece on building agents as finite state machines instead of prompt loops, you&rsquo;ll recognize the axis underneath both — it&rsquo;s the same one. In regulated systems, control and evidence aren&rsquo;t qualities you bolt onto an architecture afterwards. They&rsquo;re properties the architecture either has or doesn&rsquo;t. Locality is one of them. The engine that writes its evidence into the boundary you already govern has it; the one that writes elsewhere doesn&rsquo;t — and replication or log-shipping mitigates that for reads, but it doesn&rsquo;t undo where the system of record commits.</p>
+<h2 id="the-question-that-isnt-on-any-comparison-chart">The question that isn&rsquo;t on any comparison chart<a hidden class="anchor" aria-hidden="true" href="#the-question-that-isnt-on-any-comparison-chart">#</a></h2>
+<p>There&rsquo;s a second compliance angle, and it&rsquo;s specific to <em>managed</em> Temporal.</p>
+<p>Temporal Cloud is excellent operationally. But think about what it holds: the complete execution history of your regulated process — every step, every input, every decision — in vendor-operated infrastructure. Under DORA, that&rsquo;s not an architecture detail. That&rsquo;s an ICT third-party arrangement supporting a potentially critical function: register entry, contractual provisions, concentration risk assessment, exit strategy. The trace of your process living outside your boundary is precisely the kind of thing the regulation was written about.</p>
+<p>You can self-host Temporal and the question goes away — replaced by a different one: you now operate a distributed system (server, workers, persistence, visibility store) whose primary job, from a compliance perspective, is keeping evidence about your <em>other</em> system. That&rsquo;s a real cost, and it should be priced as one.</p>
+<p>With the Postgres-resident approach, the evidence sits inside a boundary you&rsquo;ve already defended to the regulator a hundred times. Banks know how to govern Postgres. That institutional muscle memory is worth more than any feature.</p>
+<h2 id="where-this-argument-breaks">Where this argument breaks<a hidden class="anchor" aria-hidden="true" href="#where-this-argument-breaks">#</a></h2>
+<p>Honesty section, because this argument has a boundary and I&rsquo;d rather draw it myself.</p>
+<p>Temporal wins — clearly — on very high fan-out, multi-tenant and multi-region orchestration, polyglot teams, and organizations that already have a platform team running it. Those companies process volumes where &ldquo;one Postgres&rdquo; stops being elegant and starts being the bottleneck. And at that scale my own argument inverts: the single database is now a single point of failure for the application <em>and</em> its evidence. Losing both in the same incident is not a story you want to tell a regulator either.</p>
+<p>And one more honesty while I&rsquo;m here: locality puts the evidence in your boundary, but it does not enforce your <em>retention</em> policy for you. The EU AI Act&rsquo;s six months is an obligation you operate on the checkpoint schema — and guard against premature cleanup — not something the engine inherits because the rows happen to live in your database. (The tamper-evidence gap from earlier is the other half of this; both are layers you add, and locality&rsquo;s contribution is only that you add them somewhere you already control.)</p>
+<p>My claim is narrower than &ldquo;DBOS is better.&rdquo; It&rsquo;s this: if your workflow&rsquo;s side effects land mostly in your own Postgres, your volumes are bank-workflow volumes rather than Uber volumes, and you carry audit obligations — then the engine whose evidence commits inside your compliance boundary is the structurally correct choice, and the burden of proof sits with the cluster, not the library. If you genuinely outgrow it, you&rsquo;ll know, and you&rsquo;ll migrate with evidence intact. The reverse migration — cluster to library — is the one nobody plans for, because nobody admits they bought the cluster for workloads they never had.</p>
+<h2 id="the-decision-rule">The decision rule<a hidden class="anchor" aria-hidden="true" href="#the-decision-rule">#</a></h2>
+<p>Stop choosing a workflow engine and then asking how to make it auditable. Choose where your evidence must live — inside which boundary, under whose governance, joined to which data — and treat the engine as an implementation detail of the audit log.</p>
+<p>For most regulated AI workflows, that reasoning lands you on the database you already have. Which is a strange place for an article about cutting-edge agent infrastructure to end: the most defensible component of your AI platform was installed before your AI platform existed.</p>
+<p>The audit log is the product. Build accordingly.</p>
+<hr>
+<p><em>Next in this series: when an agent generates the workflow plan itself, the plan becomes part of the trace — and the approval of that plan becomes an artifact you can hash, bind, and defend. That changes what &ldquo;human oversight&rdquo; means in practice.</em></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:1313/tags/compliance/">Compliance</a></li>
+      <li><a href="http://localhost:1313/tags/durable-execution/">Durable-Execution</a></li>
+      <li><a href="http://localhost:1313/tags/architecture/">Architecture</a></li>
+      <li><a href="http://localhost:1313/tags/temporal/">Temporal</a></li>
+      <li><a href="http://localhost:1313/tags/dbos/">Dbos</a></li>
+      <li><a href="http://localhost:1313/tags/regulation/">Regulation</a></li>
+    </ul>
+
+<ul class="share-buttons">
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Audit Log Is the Product on x"
+            href="https://x.com/intent/tweet/?text=Audit%20Log%20Is%20the%20Product&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2faudit-log-is-the-product%2f&amp;hashtags=compliance%2cdurable-execution%2carchitecture%2ctemporal%2cdbos%2cregulation">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M512 62.554 L 512 449.446 C 512 483.97 483.97 512 449.446 512 L 62.554 512 C 28.03 512 0 483.97 0 449.446 L 0 62.554 C 0 28.03 28.029 0 62.554 0 L 449.446 0 C 483.971 0 512 28.03 512 62.554 Z M 269.951 190.75 L 182.567 75.216 L 56 75.216 L 207.216 272.95 L 63.9 436.783 L 125.266 436.783 L 235.9 310.383 L 332.567 436.783 L 456 436.783 L 298.367 228.367 L 432.367 75.216 L 371.033 75.216 Z M 127.633 110 L 164.101 110 L 383.481 400.065 L 349.5 400.065 Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Audit Log Is the Product on linkedin"
+            href="https://www.linkedin.com/shareArticle?mini=true&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2faudit-log-is-the-product%2f&amp;title=Audit%20Log%20Is%20the%20Product&amp;summary=Audit%20Log%20Is%20the%20Product&amp;source=http%3a%2f%2flocalhost%3a1313%2fposts%2faudit-log-is-the-product%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-288.985,423.278l0,-225.717l-75.04,0l0,225.717l75.04,0Zm270.539,0l0,-129.439c0,-69.333 -37.018,-101.586 -86.381,-101.586c-39.804,0 -57.634,21.891 -67.617,37.266l0,-31.958l-75.021,0c0.995,21.181 0,225.717 0,225.717l75.02,0l0,-126.056c0,-6.748 0.486,-13.492 2.474,-18.315c5.414,-13.475 17.767,-27.434 38.494,-27.434c27.135,0 38.007,20.707 38.007,51.037l0,120.768l75.024,0Zm-307.552,-334.556c-25.674,0 -42.448,16.879 -42.448,39.002c0,21.658 16.264,39.002 41.455,39.002l0.484,0c26.165,0 42.452,-17.344 42.452,-39.002c-0.485,-22.092 -16.241,-38.954 -41.943,-39.002Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Audit Log Is the Product on reddit"
+            href="https://reddit.com/submit?url=http%3a%2f%2flocalhost%3a1313%2fposts%2faudit-log-is-the-product%2f&title=Audit%20Log%20Is%20the%20Product">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-3.446,265.638c0,-22.964 -18.616,-41.58 -41.58,-41.58c-11.211,0 -21.361,4.457 -28.841,11.666c-28.424,-20.508 -67.586,-33.757 -111.204,-35.278l18.941,-89.121l61.884,13.157c0.756,15.734 13.642,28.29 29.56,28.29c16.407,0 29.706,-13.299 29.706,-29.701c0,-16.403 -13.299,-29.702 -29.706,-29.702c-11.666,0 -21.657,6.792 -26.515,16.578l-69.105,-14.69c-1.922,-0.418 -3.939,-0.042 -5.585,1.036c-1.658,1.073 -2.811,2.761 -3.224,4.686l-21.152,99.438c-44.258,1.228 -84.046,14.494 -112.837,35.232c-7.468,-7.164 -17.589,-11.591 -28.757,-11.591c-22.965,0 -41.585,18.616 -41.585,41.58c0,16.896 10.095,31.41 24.568,37.918c-0.639,4.135 -0.99,8.328 -0.99,12.576c0,63.977 74.469,115.836 166.33,115.836c91.861,0 166.334,-51.859 166.334,-115.836c0,-4.218 -0.347,-8.387 -0.977,-12.493c14.564,-6.47 24.735,-21.034 24.735,-38.001Zm-119.474,108.193c-20.27,20.241 -59.115,21.816 -70.534,21.816c-11.428,0 -50.277,-1.575 -70.522,-21.82c-3.007,-3.008 -3.007,-7.882 0,-10.889c3.003,-2.999 7.882,-3.003 10.885,0c12.777,12.781 40.11,17.317 59.637,17.317c19.522,0 46.86,-4.536 59.657,-17.321c3.016,-2.999 7.886,-2.995 10.885,0.008c3.008,3.011 3.003,7.882 -0.008,10.889Zm-5.23,-48.781c-16.373,0 -29.701,-13.324 -29.701,-29.698c0,-16.381 13.328,-29.714 29.701,-29.714c16.378,0 29.706,13.333 29.706,29.714c0,16.374 -13.328,29.698 -29.706,29.698Zm-160.386,-29.702c0,-16.381 13.328,-29.71 29.714,-29.71c16.369,0 29.689,13.329 29.689,29.71c0,16.373 -13.32,29.693 -29.689,29.693c-16.386,0 -29.714,-13.32 -29.714,-29.693Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Audit Log Is the Product on facebook"
+            href="https://facebook.com/sharer/sharer.php?u=http%3a%2f%2flocalhost%3a1313%2fposts%2faudit-log-is-the-product%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-106.468,0l0,-192.915l66.6,0l12.672,-82.621l-79.272,0l0,-53.617c0,-22.603 11.073,-44.636 46.58,-44.636l36.042,0l0,-70.34c0,0 -32.71,-5.582 -63.982,-5.582c-65.288,0 -107.96,39.569 -107.96,111.204l0,62.971l-72.573,0l0,82.621l72.573,0l0,192.915l-191.104,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Audit Log Is the Product on whatsapp"
+            href="https://api.whatsapp.com/send?text=Audit%20Log%20Is%20the%20Product%20-%20http%3a%2f%2flocalhost%3a1313%2fposts%2faudit-log-is-the-product%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-58.673,127.703c-33.842,-33.881 -78.847,-52.548 -126.798,-52.568c-98.799,0 -179.21,80.405 -179.249,179.234c-0.013,31.593 8.241,62.428 23.927,89.612l-25.429,92.884l95.021,-24.925c26.181,14.28 55.659,21.807 85.658,21.816l0.074,0c98.789,0 179.206,-80.413 179.247,-179.243c0.018,-47.895 -18.61,-92.93 -52.451,-126.81Zm-126.797,275.782l-0.06,0c-26.734,-0.01 -52.954,-7.193 -75.828,-20.767l-5.441,-3.229l-56.386,14.792l15.05,-54.977l-3.542,-5.637c-14.913,-23.72 -22.791,-51.136 -22.779,-79.287c0.033,-82.142 66.867,-148.971 149.046,-148.971c39.793,0.014 77.199,15.531 105.329,43.692c28.128,28.16 43.609,65.592 43.594,105.4c-0.034,82.149 -66.866,148.983 -148.983,148.984Zm81.721,-111.581c-4.479,-2.242 -26.499,-13.075 -30.604,-14.571c-4.105,-1.495 -7.091,-2.241 -10.077,2.241c-2.986,4.483 -11.569,14.572 -14.182,17.562c-2.612,2.988 -5.225,3.364 -9.703,1.12c-4.479,-2.241 -18.91,-6.97 -36.017,-22.23c-13.314,-11.876 -22.304,-26.542 -24.916,-31.026c-2.612,-4.484 -0.279,-6.908 1.963,-9.14c2.016,-2.007 4.48,-5.232 6.719,-7.847c2.24,-2.615 2.986,-4.484 4.479,-7.472c1.493,-2.99 0.747,-5.604 -0.374,-7.846c-1.119,-2.241 -10.077,-24.288 -13.809,-33.256c-3.635,-8.733 -7.327,-7.55 -10.077,-7.688c-2.609,-0.13 -5.598,-0.158 -8.583,-0.158c-2.986,0 -7.839,1.121 -11.944,5.604c-4.105,4.484 -15.675,15.32 -15.675,37.364c0,22.046 16.048,43.342 18.287,46.332c2.24,2.99 31.582,48.227 76.511,67.627c10.685,4.615 19.028,7.371 25.533,9.434c10.728,3.41 20.492,2.929 28.209,1.775c8.605,-1.285 26.499,-10.833 30.231,-21.295c3.732,-10.464 3.732,-19.431 2.612,-21.298c-1.119,-1.869 -4.105,-2.99 -8.583,-5.232Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Audit Log Is the Product on telegram"
+            href="https://telegram.me/share/url?text=Audit%20Log%20Is%20the%20Product&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2faudit-log-is-the-product%2f">
+            <svg version="1.1" xml:space="preserve" viewBox="2 2 28 28" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M26.49,29.86H5.5a3.37,3.37,0,0,1-2.47-1,3.35,3.35,0,0,1-1-2.47V5.48A3.36,3.36,0,0,1,3,3,3.37,3.37,0,0,1,5.5,2h21A3.38,3.38,0,0,1,29,3a3.36,3.36,0,0,1,1,2.46V26.37a3.35,3.35,0,0,1-1,2.47A3.38,3.38,0,0,1,26.49,29.86Zm-5.38-6.71a.79.79,0,0,0,.85-.66L24.73,9.24a.55.55,0,0,0-.18-.46.62.62,0,0,0-.41-.17q-.08,0-16.53,6.11a.59.59,0,0,0-.41.59.57.57,0,0,0,.43.52l4,1.24,1.61,4.83a.62.62,0,0,0,.63.43.56.56,0,0,0,.4-.17L16.54,20l4.09,3A.9.9,0,0,0,21.11,23.15ZM13.8,20.71l-1.21-4q8.72-5.55,8.78-5.55c.15,0,.23,0,.23.16a.18.18,0,0,1,0,.06s-2.51,2.3-7.52,6.8Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Audit Log Is the Product on ycombinator"
+            href="https://news.ycombinator.com/submitlink?t=Audit%20Log%20Is%20the%20Product&u=http%3a%2f%2flocalhost%3a1313%2fposts%2faudit-log-is-the-product%2f">
+            <svg version="1.1" xml:space="preserve" width="30px" height="30px" viewBox="0 0 512 512" fill="currentColor"
+                xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+                <path
+                    d="M449.446 0C483.971 0 512 28.03 512 62.554L512 449.446C512 483.97 483.97 512 449.446 512L62.554 512C28.03 512 0 483.97 0 449.446L0 62.554C0 28.03 28.029 0 62.554 0L449.446 0ZM183.8767 87.9921H121.8427L230.6673 292.4508V424.0079H281.3328V292.4508L390.1575 87.9921H328.1233L256 238.2489z" />
+            </svg>
+        </a>
+    </li>
+</ul>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">Juergen Neulinger</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({ startOnLoad: true });
+</script>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
+        } else {
+            toplink.classList.add("hidden");
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

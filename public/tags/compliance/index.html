@@ -5,11 +5,11 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <meta name="robots" content="noindex, nofollow">
-<title>Posts | Juergen Neulinger</title>
+<title>Compliance | Juergen Neulinger</title>
 <meta name="keywords" content="">
-<meta name="description" content="Posts - Juergen Neulinger">
+<meta name="description" content="Engineering notes by Juergen Neulinger — LLMs, architecture, and the software in between.">
 <meta name="author" content="">
-<link rel="canonical" href="http://localhost:1313/posts/">
+<link rel="canonical" href="http://localhost:1313/tags/compliance/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.89ca4972ab5e6aaa05e9a0dae0c4bb64b26585bc79e36f5cf33614eea0283abe.css" integrity="sha256-icpJcqteaqoF6aDa4MS7ZLJlhbx5429c8zYU7qAoOr4=" rel="preload stylesheet" as="style">
 <link rel="icon" href="http://localhost:1313/favicon.ico">
 <link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
@@ -18,8 +18,8 @@
 <link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/posts/index.xml" title="rss">
-<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/">
+<link rel="alternate" type="application/rss+xml" href="http://localhost:1313/tags/compliance/index.xml" title="rss">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/tags/compliance/">
 <noscript>
     <style>
         #theme-toggle,
@@ -98,7 +98,7 @@
         <ul id="menu" class="menu">
             <li>
                 <a href="http://localhost:1313/posts/" title="Posts">
-                    <span class="active">Posts</span>
+                    <span>Posts</span>
                 </a>
             </li>
             <li>
@@ -112,11 +112,14 @@
 <main class="main"> 
 <header class="page-header">
   <h1>
-    Posts
+    Compliance
   </h1>
 </header>
 
-<article class="post-entry"> 
+<article class="post-entry tag-entry"> 
+<figure class="entry-cover">
+        <img loading="lazy" src="http://localhost:1313/images/og-audit-log.png" alt="Diagram comparing Temporal (two separate commits with a crash window) and DBOS (one atomic commit in the same database) as durable execution engines for regulated AI workflows">
+</figure>
   <header class="entry-header">
     <h2 class="entry-hint-parent">Audit Log Is the Product
       <span class="entry-hint" title="Draft">
@@ -128,31 +131,15 @@
     </h2>
   </header>
   <div class="entry-content">
-    <p></p>
-  </div>
-  <footer class="entry-footer">
-
-<span title='2026-06-24 09:15:45 +0200 CEST'>June 24, 2026</span>&nbsp;·&nbsp;<span>0 min</span></footer>
-  <a class="entry-link" aria-label="post link to Audit Log Is the Product" href="http://localhost:1313/posts/audit-log-is-the-product/"></a>
-</article>
-
-<article class="post-entry"> 
-<figure class="entry-cover">
-        <img loading="lazy" src="http://localhost:1313/images/og-give-up.png" alt="I taught an AI to give up — a state machine with a DEFERRED state">
-</figure>
-  <header class="entry-header">
-    <h2 class="entry-hint-parent">I taught an AI to give up. It&#39;s the best feature I built.
-    </h2>
-  </header>
-  <div class="entry-content">
-    <p>Quick context: I built a system that runs structured interviews. A user has a conversation with an LLM about a topic — an internal intake, a due-diligence questionnaire, a structured assessment — and on the other side comes a structured record. Every required field is filled, partially filled, or explicitly marked as “we couldn’t determine this.” Conversational on top, schema-driven underneath.
-I inherited an agent. Hundreds of lines of prompt, written by hands that had since moved on. Rules referencing bugs I’d never heard of. Three different definitions of “done,” each one valid depending on which paragraph you stopped at. I tuned it the way you tune any prompt you didn’t write — adding clauses on top, hoping, never sure which one was load-bearing.
+    <p>The Audit Log Is the Product Where your workflow engine keeps its history decides whether your AI system survives an audit. Most teams make that decision by accident.
+There’s a question that reshapes how you architect AI systems in a bank, and it doesn’t come from your users. It comes from an auditor, eighteen months after go-live:
+“Show me what the system did in this case — and prove that what it recorded is what actually happened.”
 ...</p>
   </div>
   <footer class="entry-footer">
 
-<span title='2026-06-08 00:00:00 +0000 UTC'>June 8, 2026</span>&nbsp;·&nbsp;<span>9 min</span></footer>
-  <a class="entry-link" aria-label="post link to I taught an AI to give up. It&#39;s the best feature I built." href="http://localhost:1313/posts/teaching-ai-to-give-up/"></a>
+<span title='2026-06-24 00:00:00 +0000 UTC'>June 24, 2026</span>&nbsp;·&nbsp;<span>11 min</span></footer>
+  <a class="entry-link" aria-label="post link to Audit Log Is the Product" href="http://localhost:1313/posts/audit-log-is-the-product/"></a>
 </article>
     </main>
     
