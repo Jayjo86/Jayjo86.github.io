@@ -1,0 +1,83 @@
+{{- /* NOTE: PaperMod pulls the footer in with partialCached, keyed on layout/kind
+       rather than on the page — so a Hugo-side "does this page have a diagram?"
+       gate here would be evaluated once and reused for every post. The check is
+       done in the browser instead, and the Mermaid bundle is loaded with a
+       dynamic import so only pages that actually contain a diagram fetch it. */ -}}
+<script type="module">
+  const blocks = [...document.querySelectorAll('pre.mermaid')];
+  if (blocks.length) {
+    const { default: mermaid } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+
+    // Mermaid replaces the element's contents with an <svg>, so stash the source
+    // before the first render — re-theming has to re-run the parser from scratch.
+    blocks.forEach(b => (b.dataset.src = b.textContent));
+
+    const root = document.documentElement;
+    const v = name => getComputedStyle(root).getPropertyValue(name).trim();
+
+    // Derive the diagram palette from PaperMod's own CSS variables, so diagrams
+    // track the site theme instead of shipping Mermaid's default light palette
+    // onto a dark page.
+    function config() {
+      const dark      = root.dataset.theme === 'dark';
+      const theme     = v('--theme');     // page background
+      const entry     = v('--entry');     // card / node fill
+      const primary   = v('--primary');   // strong text
+      const content   = v('--content');   // body text
+      const secondary = v('--secondary');
+      const border    = v('--border');
+      const codeBg    = v('--code-bg');
+      const accent    = dark ? '#7aa2f7' : '#2f6fdb';
+
+      return {
+        startOnLoad: false,
+        theme: 'base',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+        themeVariables: {
+          darkMode: dark,
+          background: theme,
+          fontSize: '15px',
+
+          primaryColor: entry,    primaryTextColor: primary,   primaryBorderColor: accent,
+          secondaryColor: codeBg, secondaryTextColor: content, secondaryBorderColor: border,
+          tertiaryColor: theme,   tertiaryTextColor: content,  tertiaryBorderColor: border,
+
+          mainBkg: entry, nodeBorder: accent, nodeTextColor: primary,
+          lineColor: accent, textColor: content, titleColor: primary,
+          edgeLabelBackground: theme,
+          clusterBkg: codeBg, clusterBorder: border,
+
+          /* sequence diagram */
+          actorBkg: entry, actorBorder: accent, actorTextColor: primary,
+          actorLineColor: secondary,
+          signalColor: content, signalTextColor: content,
+          labelBoxBkgColor: entry, labelBoxBorderColor: accent, labelTextColor: primary,
+          loopTextColor: content,
+          noteBkgColor: codeBg, noteTextColor: content, noteBorderColor: accent,
+          activationBkgColor: codeBg, activationBorderColor: accent,
+          sequenceNumberColor: theme,
+        },
+        flowchart: { useMaxWidth: true, htmlLabels: true, padding: 12, nodeSpacing: 45, rankSpacing: 55 },
+        sequence:  { useMaxWidth: true, actorMargin: 22, boxMargin: 8, noteAlign: 'left', mirrorActors: false, wrap: false },
+      };
+    }
+
+    async function render() {
+      mermaid.initialize(config());
+      for (const b of blocks) {
+        b.textContent = b.dataset.src;
+        b.removeAttribute('data-processed');
+      }
+      await mermaid.run({ nodes: blocks });
+    }
+
+    await render();
+
+    // PaperMod's toggle flips <html data-theme>; redraw so diagrams follow it.
+    let pending;
+    new MutationObserver(() => {
+      clearTimeout(pending);
+      pending = setTimeout(render, 60);
+    }).observe(root, { attributeFilter: ['data-theme'] });
+  }
+</script>

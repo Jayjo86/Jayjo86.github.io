@@ -11,8 +11,29 @@
     </image>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 24 Jun 2026 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Tue, 18 Aug 2026 11:13:08 +0200</lastBuildDate>
     <atom:link href="http://localhost:1313/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>MCP Gateway 3/3: What it takes to run one</title>
+      <link>http://localhost:1313/posts/mcp-gateway-03-what-it-takes-to-run-one/</link>
+      <pubDate>Tue, 18 Aug 2026 11:13:08 +0200</pubDate>
+      <guid>http://localhost:1313/posts/mcp-gateway-03-what-it-takes-to-run-one/</guid>
+      <description>The honest accounting for a reference MCP gateway: the deliberate simplifications, what the newer protocol revision changes, and everything still missing before production.</description>
+    </item>
+    <item>
+      <title>MCP Gateway 2/3: Three layers of policy</title>
+      <link>http://localhost:1313/posts/mcp-gateway-02-three-layers-of-policy/</link>
+      <pubDate>Tue, 18 Aug 2026 11:12:43 +0200</pubDate>
+      <guid>http://localhost:1313/posts/mcp-gateway-02-three-layers-of-policy/</guid>
+      <description>Splitting MCP authorization across three Rego layers with three owners — platform, domain team, tool owner — so that no team can widen another team&amp;#39;s grant.</description>
+    </item>
+    <item>
+      <title>MCP Gateway 1/3: Why every enterprise rolling out MCP needs a gateway</title>
+      <link>http://localhost:1313/posts/mcp-gateway-01-why-you-need-one/</link>
+      <pubDate>Tue, 18 Aug 2026 11:05:23 +0200</pubDate>
+      <guid>http://localhost:1313/posts/mcp-gateway-01-why-you-need-one/</guid>
+      <description>A walk-through of an open, MIT-licensed reference MCP gateway built on FastMCP, OPA and Microsoft Entra ID — why an enterprise MCP rollout needs a single control point, and what that control point has to do.</description>
+    </item>
     <item>
       <title>Audit Log Is the Product</title>
       <link>http://localhost:1313/posts/audit-log-is-the-product/</link>

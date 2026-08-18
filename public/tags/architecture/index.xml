@@ -11,8 +11,15 @@
     </image>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 08 Jun 2026 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 24 Jun 2026 00:00:00 +0000</lastBuildDate>
     <atom:link href="http://localhost:1313/tags/architecture/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>Audit Log Is the Product</title>
+      <link>http://localhost:1313/posts/audit-log-is-the-product/</link>
+      <pubDate>Wed, 24 Jun 2026 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/posts/audit-log-is-the-product/</guid>
+      <description>In a regulated environment, the audit trail has the same status as the feature. The durable execution engine you pick settles where your evidence commits — before you write a line of compliance code.</description>
+    </item>
     <item>
       <title>I taught an AI to give up. It&#39;s the best feature I built.</title>
       <link>http://localhost:1313/posts/teaching-ai-to-give-up/</link>

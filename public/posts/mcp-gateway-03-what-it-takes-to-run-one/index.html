@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>MCP Gateway 3/3: What it takes to run one | Juergen Neulinger</title>
+<meta name="keywords" content="mcp, gateway, architecture, security, operations, opa">
+<meta name="description" content="The honest accounting for a reference MCP gateway: the deliberate simplifications, what the newer protocol revision changes, and everything still missing before production.">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/posts/mcp-gateway-03-what-it-takes-to-run-one/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.89ca4972ab5e6aaa05e9a0dae0c4bb64b26585bc79e36f5cf33614eea0283abe.css" integrity="sha256-icpJcqteaqoF6aDa4MS7ZLJlhbx5429c8zYU7qAoOr4=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/mcp-gateway-03-what-it-takes-to-run-one/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><style>
+  .series-nav {
+    margin: 0 0 2rem;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--primary);
+    border-radius: var(--radius);
+    background: var(--code-bg);
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+
+  .series-nav__head {
+    margin: 0 0 0.45rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.78rem;
+  }
+
+  .series-nav__head a {
+    text-decoration: none;
+    box-shadow: none;
+  }
+
+  .series-nav__head a:hover {
+    text-decoration: underline;
+  }
+
+  .series-nav__count {
+    font-weight: 400;
+    color: var(--secondary);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .series-nav__list {
+    margin: 0;
+    padding-left: 1.4rem;
+  }
+
+  .series-nav__list li {
+    margin: 0.15rem 0;
+  }
+
+  .series-nav__list li::marker {
+    color: var(--secondary);
+  }
+
+  .series-nav__current {
+    color: var(--secondary);
+  }
+
+  .series-nav__current em {
+    font-style: normal;
+    font-size: 0.85em;
+    opacity: 0.75;
+  }
+
+   
+  .mermaid-figure {
+     
+    width: min(100vw - 2.5rem, 1140px);
+    margin: 2rem 0 2rem 50%;
+    transform: translateX(-50%);
+    overflow-x: auto;
+  }
+  .post-content pre.mermaid {
+    background: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+    white-space: normal;
+    line-height: normal;
+  }
+  .post-content pre.mermaid svg { max-width: 100%; height: auto; }
+   
+  .post-content pre.mermaid:not([data-processed]) { visibility: hidden; }
+</style>
+
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Juergen Neulinger (Alt + H)">Juergen Neulinger</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="http://localhost:1313/posts/" title="Posts">
+                    <span>Posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/about/" title="About">
+                    <span>About</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      MCP Gateway 3/3: What it takes to run one
+      <span class="entry-hint" title="Draft">
+        <svg xmlns="http://www.w3.org/2000/svg" height="35" viewBox="0 -960 960 960" fill="currentColor">
+          <path
+            d="M160-410v-60h300v60H160Zm0-165v-60h470v60H160Zm0-165v-60h470v60H160Zm360 580v-123l221-220q9-9 20-13t22-4q12 0 23 4.5t20 13.5l37 37q9 9 13 20t4 22q0 11-4.5 22.5T862.09-380L643-160H520Zm300-263-37-37 37 37ZM580-220h38l121-122-18-19-19-18-122 121v38Zm141-141-19-18 37 37-18-19Z" />
+        </svg>
+      </span>
+    </h1>
+    <div class="post-description">
+      The honest accounting for a reference MCP gateway: the deliberate simplifications, what the newer protocol revision changes, and everything still missing before production.
+    </div>
+    <div class="post-meta">
+
+<span title='2026-08-18 11:13:08 +0200 CEST'>August 18, 2026</span>&nbsp;·&nbsp;<span>15 min</span>
+
+</div>
+  </header> <details class="toc" >
+    <summary accesskey="c" title="(Alt + C)">
+        <span class="title">Table of Contents</span>
+    </summary>
+
+    <div class="inner"><ul>
+            <li>
+                <a href="#where-we-are" aria-label="Where we are">Where we are</a></li>
+            <li>
+                <a href="#the-deliberate-limitations" aria-label="The deliberate limitations">The deliberate limitations</a></li>
+            <li>
+                <a href="#the-spec-moved-while-i-was-building-this" aria-label="The spec moved while I was building this">The spec moved while I was building this</a></li>
+            <li>
+                <a href="#whats-missing-for-production" aria-label="What&rsquo;s missing for production">What&rsquo;s missing for production</a><ul>
+                    
+            <li>
+                <a href="#state-and-scale" aria-label="State and scale">State and scale</a></li>
+            <li>
+                <a href="#identity-and-authorization-correctness" aria-label="Identity and authorization correctness">Identity and authorization correctness</a></li>
+            <li>
+                <a href="#rego-policy-lifecycle" aria-label="Rego policy lifecycle">Rego policy lifecycle</a></li>
+            <li>
+                <a href="#onboarding-a-new-mcp-server" aria-label="Onboarding a new MCP server">Onboarding a new MCP server</a></li>
+            <li>
+                <a href="#audit-and-compliance" aria-label="Audit and compliance">Audit and compliance</a></li>
+            <li>
+                <a href="#operational-hardening" aria-label="Operational hardening">Operational hardening</a></li></ul>
+            </li>
+            <li>
+                <a href="#closing" aria-label="Closing">Closing</a>
+            </li>
+        </ul>
+    </div>
+</details>
+
+  <div class="post-content md-content"><p><em>Part 3 of three, on a reference MCP gateway built with FastMCP, OPA and Microsoft Entra ID. This part is the honest accounting: where the reference stops, and what a real deployment still needs.</em></p>
+<aside class="series-nav" aria-label="Series navigation">
+    <p class="series-nav__head">
+      <a href="/series/mcp-gateway/">MCP Gateway</a>
+      <span class="series-nav__count">&middot; part 3 of 3</span>
+    </p>
+    <ol class="series-nav__list">
+      <li><a href="/posts/mcp-gateway-01-why-you-need-one/">Why you need a gateway</a></li>
+      <li><a href="/posts/mcp-gateway-02-three-layers-of-policy/">Three layers of policy</a></li>
+      <li class="series-nav__current" aria-current="true" ><span>What it takes to run one</span> <em>(you are here)</em></li>
+    </ol>
+  </aside>
+<hr>
+<h2 id="where-we-are">Where we are<a hidden class="anchor" aria-hidden="true" href="#where-we-are">#</a></h2>
+<p><a href="/posts/mcp-gateway-01-why-you-need-one/">Part 1</a> built the control point: an OAuth 2.1 authorization server to MCP clients, a confidential client to Entra behind it, no token passthrough, a policy decision before any downstream credential exists, one audit row per call. <a href="/posts/mcp-gateway-02-three-layers-of-policy/">Part 2</a> covered the decision itself — a three-layer Rego bundle where the platform team decides which agent may connect, domain teams decide which users reach which backend, and tool owners decide what a specific action requires.</p>
+<p>Both of those parts describe things the gateway does. This one describes things it doesn&rsquo;t, and I think it is the most useful of the three.</p>
+<p>A reference implementation is only worth learning from if it is honest about its edges. It is built to be read, so the simplifications are part of the lesson: each one marks a decision a real deployment has to make deliberately, and every one of them is a place I have watched a demo quietly pretend the problem doesn&rsquo;t exist. If you are building your own gateway, this is your backlog. If you are buying one, these are the questions to ask the vendor.</p>
+<hr>
+<h2 id="the-deliberate-limitations">The deliberate limitations<a hidden class="anchor" aria-hidden="true" href="#the-deliberate-limitations">#</a></h2>
+<p><strong>Elevated tools are gated by admin-assigned app roles, not runtime step-up.</strong> Each elevated tool declares a <code>required_role</code> — a gateway app role such as <code>Ledger.Write</code> — matched against the <code>roles</code> claim of the gateway-audience token. A principal without it is denied and the tool is hidden from <code>tools/list</code>; it becomes callable once an administrator grants the role in Entra. There is deliberately no interactive consent prompt at call time.</p>
+<p>This is the subtle part almost everyone gets wrong, so it is worth spelling out. A naive design checks a <em>backend</em> resource scope against the <em>gateway</em> token. Entra issues scopes relative to a token&rsquo;s own resource, so a backend scope can never appear in a gateway-audience token and the check either always fails or, worse, gets &ldquo;fixed&rdquo; by removing it. App roles live on the gateway app, so they land in the token you already validate.</p>
+<p><strong>M2M and OBO are not interchangeable.</strong> The profile is per backend and <code>obo</code> is the default. Switch a backend to <code>m2m</code> and its calls run as the <em>gateway&rsquo;s service principal</em>, which costs you two things: per-user data authorization at the backend (row-level filtering has nothing to filter on) and backend-side attribution. The human is still recorded at the gateway, but the backend only ever sees a service account. M2M is the right choice for a backend with no per-user data model and the wrong choice everywhere else. &ldquo;Acts as the user end to end&rdquo; needs <code>obo</code>, and if you flip a backend to <code>m2m</code> for convenience you have quietly retracted that claim.</p>
+<p><strong><code>tools/list</code> mints on <code>.default</code>, not the per-tool scope.</strong> The credential prefetch <a href="/posts/mcp-gateway-02-three-layers-of-policy/">Part 2</a> describes happens before any tool is known, so the least-privilege story has a hole on the path that runs most often. The token is cached and the backend still validates audience, but it is broader than any single call needs.</p>
+<p><strong>State is per-process, and half of it is on disk.</strong> The downstream token caches are in-memory — bounded, TTL-evicted, with single-flight so a burst of concurrent calls fires one Entra exchange rather than N. The OAuth session store is not in memory: pass no <code>client_storage</code> and <code>AzureProvider</code> falls back to an encrypted on-disk file store (Fernet over a file tree), in a directory named after a fingerprint of the session signing key.</p>
+<p>That default is better than it sounds and worse than you need. Better, because a plain <code>docker compose restart</code> keeps every session — nobody has to re-authenticate. Worse, because it lives in the container&rsquo;s writable layer with no volume behind it, so recreating the container throws it away, rotating the signing key orphans it, and two replicas share nothing at all. Redis-backed, encrypted state is the production fix for both halves.</p>
+<p><strong>Resources and prompts are denied, not modeled.</strong> Reading a resource or fetching a prompt is fail-closed-denied with an audit row, because the policy bundle is tool-centric. That is the right default and a real capability gap: this gateway currently cannot front a backend whose value is in its resources.</p>
+<p><strong>The audit write is best-effort.</strong> A failed write is logged loudly and never masks the tool result. That is deliberate — the side effect may already have happened on the backend, and raising would lose the client&rsquo;s result <em>and</em> still not produce a record. But it does mean the compliance guarantee today is &ldquo;we almost always have a row&rdquo;, not &ldquo;we always do&rdquo;, and those are different sentences in front of a regulator.</p>
+<p><strong>The role check for <code>tools/list</code> exists twice.</strong> Rego decides it at call time, and the gateway re-checks <code>required_role</code> in Python to filter the list. The second copy is deliberately UX-only, and the drift it can produce is a hidden-but-callable tool, never an unauthorized one. It is still one rule with two implementations. Asking OPA for a batch decision over the candidate set would collapse them, at the cost of a round trip on every list. It stays on the list.</p>
+<p>None of these make the pattern wrong. They are the difference between a reference you learn from and a service you run.</p>
+<p>And one thing I would push back on if someone proposed it: <strong>don&rsquo;t make the agent allowlist your primary control.</strong> It is tempting, because it is the one that feels like it is stopping the scary new thing. It is a bearer-token allowlist. It governs who was issued a session, not who is holding one. The load-bearing controls are the Entra login with your Conditional Access on it, the user&rsquo;s app roles, and the consent interstitial.</p>
+<hr>
+<h2 id="the-spec-moved-while-i-was-building-this">The spec moved while I was building this<a hidden class="anchor" aria-hidden="true" href="#the-spec-moved-while-i-was-building-this">#</a></h2>
+<p>Everything in this series implements the <strong>2025-11-25</strong> authorization spec. A newer revision, <strong>2026-07-28</strong>, supersedes it. I published against the older one on purpose, and the reasoning is worth stating because you will face the same choice on whatever schedule MCP decides.</p>
+<p>Support for the new revision lands in FastMCP 4, which is still beta. Pinning <code>4.0.0b2</code> in a reference implementation <em>about enterprise security</em> is the first thing a skeptical reader would screenshot, and beta-to-stable churn means paying the migration twice. So: be correct against the revision that has a stable implementation, and be honest about the delta.</p>
+<p><strong>The architecture turns out to be revision-independent</strong>, and I checked rather than assumed — <code>fastmcp==4.0.0b2</code> in a throwaway venv, against the actual API surface. <code>AzureProvider</code>, the <code>jwt_issuer</code> property the agent-identity fix depends on, <code>FastMCPProxy</code>, <code>mount(namespace=…)</code> and every middleware hook this gateway uses all survive untouched. Three identities that must not be conflated, no token passthrough, decide-before-mint, one audit row per call: none of it is touched by the new revision. The migration is not a port.</p>
+<p>What changes is which surfaces the enforcement point has to cover, and all three are gateway problems the library will not solve for you.</p>
+<p><strong><code>server/discover</code> becomes mandatory</strong>, and clients may call it first. Right now it is the one method that would reach a backend with no policy decision and no audit row. The single-chokepoint design from <a href="/posts/mcp-gateway-01-why-you-need-one/">Part 1</a> is what makes fixing that a new <code>Operation</code> rather than a new code path.</p>
+<p><strong><code>subscriptions/listen</code> replaces the GET stream and <code>resources/subscribe</code>.</strong> FastMCP 4 implements it in the SDK layer with no middleware hook, so it routes around the PEP entirely — straight past the fail-closed position on resources. The exposure is bounded, since notifications carry a URI rather than content, but &ldquo;nothing reaches a backend unaudited&rdquo; has to be a decision rather than an omission. The honest interim answer is blocking it at the ASGI layer until a hook exists.</p>
+<p><strong>Multi Round-Trip Requests replace sampling, elicitation and roots.</strong> A call can return <code>input_required</code> and be retried carrying the human&rsquo;s answer. That breaks two audit assumptions at once. One logical operation becomes N calls with N unrelated trace IDs, so the record fragments exactly where a human supplied input — the most interesting part of the record for NIS2 or DORA. And the argument hash covers <code>arguments</code> only, so a retry with materially different human input hashes identically to the original.</p>
+<p>That last one generalises well past MCP, and it is the piece I would tell someone about at a conference: <strong>an audit design assumes a request is one round trip until the day it isn&rsquo;t.</strong> If your compliance story rests on one row per call, a protocol that turns one operation into a conversation quietly turns your evidence into confetti. The fix is an operation-level correlation ID distinct from the per-request trace ID. The reason to know about it now is arithmetic — retrofitting an ID into an existing audit table is a migration, adding it up front is a column.</p>
+<p>One thing gets easier. 2026-07-28 formally deprecates Dynamic Client Registration in favour of CIMD, with a twelve-month window. The policy layer already treats a verified CIMD URL and a self-registered DCR UUID as different grades of evidence, so CIMD stops being an argument I have to make and becomes the one the spec makes for me.</p>
+<hr>
+<h2 id="whats-missing-for-production">What&rsquo;s missing for production<a hidden class="anchor" aria-hidden="true" href="#whats-missing-for-production">#</a></h2>
+<p>A consolidated checklist, grouped so you can hand each group to the right team.</p>
+<h3 id="state-and-scale">State and scale<a hidden class="anchor" aria-hidden="true" href="#state-and-scale">#</a></h3>
+<ul>
+<li>Shared session and token store (Redis plus Fernet encryption), and stateless HTTP mode for horizontal scale and mid-session replica failover.</li>
+<li>SSE-safe ingress (buffering off, long timeouts), exact-origin CORS, rate limiting, request-size limits, HA replicas, a load test.</li>
+<li><strong>Budget for the OPA coupling.</strong> Fail-closed means the PDP sits in the critical path: OPA down is gateway down. That is the correct security posture and a genuine availability dependency, so size, monitor and alert on it like one instead of discovering it during an incident.</li>
+</ul>
+<h3 id="identity-and-authorization-correctness">Identity and authorization correctness<a hidden class="anchor" aria-hidden="true" href="#identity-and-authorization-correctness">#</a></h3>
+<ul>
+<li>Keep authorization on gateway <strong>app roles</strong> rather than downstream scopes or raw directory groups. Both alternatives have sharp edges — an audience mismatch that can never match, and a claim that silently disappears past 200 groups.</li>
+<li>Real OAuth step-up (<code>401</code>/<code>403</code> with <code>WWW-Authenticate: insufficient_scope</code>) for interactive elevation.</li>
+<li>Conditional Access on the gateway app. Consider DPoP or token binding, so a stolen session JWT isn&rsquo;t enough on its own.</li>
+</ul>
+<h3 id="rego-policy-lifecycle">Rego policy lifecycle<a hidden class="anchor" aria-hidden="true" href="#rego-policy-lifecycle">#</a></h3>
+<p>Policy is code that changes who can do their job. It needs the same lifecycle as the gateway itself, and it is the part most teams retrofit after their first self-inflicted outage.</p>
+<ul>
+<li><strong>Ownership and review.</strong> CODEOWNERS per layer: the platform team owns <code>platform.rego</code>, each domain team owns its slice of <code>domain.rego</code>, tool teams own their <code>tool.rego</code> sections. A domain team must not be able to merge a change to the platform layer. Because the three layers are a conjunction no team can widen another&rsquo;s grant, and that property is exactly what makes distributed ownership safe — so protect it in review.</li>
+<li><strong>CI on every policy PR.</strong> <code>opa test policy/bundle policy/tests</code> as a required check, plus <code>opa fmt --diff</code> and <code>opa check --strict</code> to catch the undefined-versus-false traps from <a href="/posts/mcp-gateway-02-three-layers-of-policy/">Part 2</a> before they ship. Coverage on the Rego, so a new rule with no test is visible.</li>
+<li><strong>Contract tests against the application.</strong> Policy and code share a vocabulary of tool names, role names and server names. Test that they agree — the repo does this for the registry and <code>data.json</code> — and extend it to the Entra app roles actually defined in the tenant.</li>
+<li><strong>Distribution from git, not from a volume mount.</strong> OPAL, an OPA bundle server, or a signed bundle in object storage. Turn on bundle signature verification on the OPA side so a compromised distribution path can&rsquo;t rewrite policy. Version every bundle and record the version in the audit row, so &ldquo;what rule denied this?&rdquo; is still answerable six months later.</li>
+<li><strong>Staged rollout with a shadow mode.</strong> The single biggest gap in what I built: there is no way to ship a tightened policy in dry-run and see what it <em>would</em> have denied. Add a decision mode that evaluates the new bundle alongside the live one and logs disagreements without enforcing. Without it every tightening is a leap, and the safe-feeling move — never tighten — is how policy rots.</li>
+<li><strong>Decision logs to the SIEM.</strong> OPA&rsquo;s decision log is a different record from the gateway&rsquo;s audit row and complements it: it captures the full input and the rules that fired. Ship it, retain it, and alert on deny-rate spikes. A sudden wave of denials is either an attack or a botched rollout, and you want to know which one within minutes.</li>
+<li><strong>A break-glass path.</strong> A documented, audited, time-boxed way to grant an exception when policy is wrong at 3am, and an alert when it is used. Teams without one edit <code>data.json</code> on the running container and never tell anybody.</li>
+<li><strong>Data separate from rules.</strong> <code>data.json</code> — which servers, which roles, which caps — changes weekly. The <code>.rego</code> files, which decide how decisions compose, change rarely. Different review bars, ideally different pipelines.</li>
+</ul>
+<h3 id="onboarding-a-new-mcp-server">Onboarding a new MCP server<a hidden class="anchor" aria-hidden="true" href="#onboarding-a-new-mcp-server">#</a></h3>
+<p>Adding a backend currently touches six places across three repos and two systems. That is fine for two servers and does not survive twenty. Build the paved road before you need it.</p>
+<p>What a team goes through today:</p>
+<ol>
+<li><strong>Entra app registration</strong> for the new server — Application ID URI, <code>requestedAccessTokenVersion: 2</code>, delegated scopes for OBO (<code>Ledger.Read</code>, <code>Ledger.Write</code>), or an Application-type app role for M2M.</li>
+<li><strong>Grant and admin-consent</strong> those scopes to the gateway&rsquo;s app registration.</li>
+<li><strong>Gateway app roles</strong> for the new domain (<code>ledger.read</code>) and any elevated tools (<code>Ledger.Write</code>), assigned to users or to a group mapped onto the role.</li>
+<li><strong>Gateway config</strong> — URL, audience, app-ID GUID, scope, downstream profile.</li>
+<li><strong>Policy data</strong> — <code>enabled_servers</code>, <code>server_roles</code>, and a <code>tools</code> entry per tool with its required role and argument constraints.</li>
+<li><strong>Tool registry</strong> — regulatory tags (NIS2 / DORA / AI Act) and the least-privilege downstream scope suffix, per tool.</li>
+</ol>
+<p>What it should become:</p>
+<ul>
+<li><strong>A registration request as a pull request.</strong> One manifest per MCP server — audience, profile, tools, governance tags, requested roles — that generates the gateway config and the policy data entries. Review then becomes a single diff a security reviewer can actually read, instead of six diffs across three repos.</li>
+<li><strong>Automate the Entra side.</strong> The app registration, the scope definitions and the gateway grant are all Terraform, Bicep or Graph API calls. Hand-clicking them is where <code>api://</code>-versus-GUID audience mismatches and missing <code>requestedAccessTokenVersion: 2</code> come from. Those two cost me more time than anything else in this project, and both surface as opaque runtime errors rather than setup errors.</li>
+<li><strong>A conformance check before a server goes live.</strong> Automated: does it reject a token minted for another backend? Does it return 401 with RFC 9728 metadata that resolves? Do its declared tools match what it serves? Does every tool carry governance metadata? A server that fails any of these should not be mountable.</li>
+<li><strong>Named owners and a review cadence.</strong> Every server and every tool needs an owning team in CODEOWNERS, a regulatory classification made deliberately rather than defaulted, and a periodic re-attestation of who holds which app role. Regulators ask who approved this, and &ldquo;it was in the config&rdquo; is not an answer.</li>
+<li><strong>A deprecation path.</strong> <code>enabled_servers</code> gives you a kill switch; the process around it is what&rsquo;s missing — announcement, grace period, an audit-log check for remaining callers, removal. Decommissioning is the step everyone leaves out of the paved road and then does by hand under time pressure.</li>
+</ul>
+<h3 id="audit-and-compliance">Audit and compliance<a hidden class="anchor" aria-hidden="true" href="#audit-and-compliance">#</a></h3>
+<ul>
+<li>Tamper-evident storage: hash chain, signed receipts, append-only, or WORM.</li>
+<li>Guaranteed delivery through an outbox or queue, so a database outage never drops a record. Today a failed write is logged, not retried.</li>
+<li>Retention enforcement as a scheduled job (the AI Act&rsquo;s floor is six months).</li>
+<li>Remember what this is. An <em>authorization</em> gateway is not a compliance solution. DLP and content scanning, model governance, HA/BC/DR, DPIA, conformity assessment, third-party risk and human-review workflows are all out of scope by design, and pretending otherwise is how a control point becomes a compliance theatre prop.</li>
+</ul>
+<h3 id="operational-hardening">Operational hardening<a hidden class="anchor" aria-hidden="true" href="#operational-hardening">#</a></h3>
+<p>Pin every dependency. Reproducible, non-root container builds. Real secret management rather than a <code>.env</code> file. Real TLS at the ingress. A signing-key rotation runbook. And an owner for the perpetual MCP-spec-tracking tax, because it is a standing cost, not a project.</p>
+<hr>
+<h2 id="closing">Closing<a hidden class="anchor" aria-hidden="true" href="#closing">#</a></h2>
+<p>Across three parts the thesis has been the same: <strong>the plumbing is a library, the judgment is yours.</strong> FastMCP handles the MCP protocol, transport, aggregation and the OAuth surface. Entra ID handles identity. OPA handles the decision. What you build and own is the enforcement point, the per-backend token exchange and the audit record — the parts that encode <em>your</em> enterprise&rsquo;s rules and <em>your</em> regulator&rsquo;s expectations. That is also the part a product cannot buy you, which is why this series is written as a blueprint rather than a deployment guide.</p>
+<p>Of the three parts, this is the one I would keep if I could only keep one. A gateway that decides correctly is a weekend of reading. A gateway you can operate is policy lifecycle, an onboarding path teams will actually follow, an audit trail that survives a protocol change, and somebody whose job it is to track a spec that moves every few months. The code is the easy half, and the list above is why.</p>
+<p>An MCP gateway isn&rsquo;t optional infrastructure for a serious enterprise rollout. It is the difference between &ldquo;agents can call our systems&rdquo; and &ldquo;agents can call our systems, as the right user, only when allowed, with a record we can show a regulator.&rdquo; The point of building this one in the open was to show that the whole control point — the OAuth broker, the PEP, both token exchanges, the audit writer — fits in under two thousand lines of readable Python. Small enough to hold in your head, which is the only way anyone ends up trusting it. Provided, always, that you also understand where it stops.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:1313/tags/mcp/">Mcp</a></li>
+      <li><a href="http://localhost:1313/tags/gateway/">Gateway</a></li>
+      <li><a href="http://localhost:1313/tags/architecture/">Architecture</a></li>
+      <li><a href="http://localhost:1313/tags/security/">Security</a></li>
+      <li><a href="http://localhost:1313/tags/operations/">Operations</a></li>
+      <li><a href="http://localhost:1313/tags/opa/">Opa</a></li>
+    </ul>
+
+<ul class="share-buttons">
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share MCP Gateway 3/3: What it takes to run one on x"
+            href="https://x.com/intent/tweet/?text=MCP%20Gateway%203%2f3%3a%20What%20it%20takes%20to%20run%20one&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2fmcp-gateway-03-what-it-takes-to-run-one%2f&amp;hashtags=mcp%2cgateway%2carchitecture%2csecurity%2coperations%2copa">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M512 62.554 L 512 449.446 C 512 483.97 483.97 512 449.446 512 L 62.554 512 C 28.03 512 0 483.97 0 449.446 L 0 62.554 C 0 28.03 28.029 0 62.554 0 L 449.446 0 C 483.971 0 512 28.03 512 62.554 Z M 269.951 190.75 L 182.567 75.216 L 56 75.216 L 207.216 272.95 L 63.9 436.783 L 125.266 436.783 L 235.9 310.383 L 332.567 436.783 L 456 436.783 L 298.367 228.367 L 432.367 75.216 L 371.033 75.216 Z M 127.633 110 L 164.101 110 L 383.481 400.065 L 349.5 400.065 Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share MCP Gateway 3/3: What it takes to run one on linkedin"
+            href="https://www.linkedin.com/shareArticle?mini=true&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2fmcp-gateway-03-what-it-takes-to-run-one%2f&amp;title=MCP%20Gateway%203%2f3%3a%20What%20it%20takes%20to%20run%20one&amp;summary=MCP%20Gateway%203%2f3%3a%20What%20it%20takes%20to%20run%20one&amp;source=http%3a%2f%2flocalhost%3a1313%2fposts%2fmcp-gateway-03-what-it-takes-to-run-one%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-288.985,423.278l0,-225.717l-75.04,0l0,225.717l75.04,0Zm270.539,0l0,-129.439c0,-69.333 -37.018,-101.586 -86.381,-101.586c-39.804,0 -57.634,21.891 -67.617,37.266l0,-31.958l-75.021,0c0.995,21.181 0,225.717 0,225.717l75.02,0l0,-126.056c0,-6.748 0.486,-13.492 2.474,-18.315c5.414,-13.475 17.767,-27.434 38.494,-27.434c27.135,0 38.007,20.707 38.007,51.037l0,120.768l75.024,0Zm-307.552,-334.556c-25.674,0 -42.448,16.879 -42.448,39.002c0,21.658 16.264,39.002 41.455,39.002l0.484,0c26.165,0 42.452,-17.344 42.452,-39.002c-0.485,-22.092 -16.241,-38.954 -41.943,-39.002Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share MCP Gateway 3/3: What it takes to run one on reddit"
+            href="https://reddit.com/submit?url=http%3a%2f%2flocalhost%3a1313%2fposts%2fmcp-gateway-03-what-it-takes-to-run-one%2f&title=MCP%20Gateway%203%2f3%3a%20What%20it%20takes%20to%20run%20one">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-3.446,265.638c0,-22.964 -18.616,-41.58 -41.58,-41.58c-11.211,0 -21.361,4.457 -28.841,11.666c-28.424,-20.508 -67.586,-33.757 -111.204,-35.278l18.941,-89.121l61.884,13.157c0.756,15.734 13.642,28.29 29.56,28.29c16.407,0 29.706,-13.299 29.706,-29.701c0,-16.403 -13.299,-29.702 -29.706,-29.702c-11.666,0 -21.657,6.792 -26.515,16.578l-69.105,-14.69c-1.922,-0.418 -3.939,-0.042 -5.585,1.036c-1.658,1.073 -2.811,2.761 -3.224,4.686l-21.152,99.438c-44.258,1.228 -84.046,14.494 -112.837,35.232c-7.468,-7.164 -17.589,-11.591 -28.757,-11.591c-22.965,0 -41.585,18.616 -41.585,41.58c0,16.896 10.095,31.41 24.568,37.918c-0.639,4.135 -0.99,8.328 -0.99,12.576c0,63.977 74.469,115.836 166.33,115.836c91.861,0 166.334,-51.859 166.334,-115.836c0,-4.218 -0.347,-8.387 -0.977,-12.493c14.564,-6.47 24.735,-21.034 24.735,-38.001Zm-119.474,108.193c-20.27,20.241 -59.115,21.816 -70.534,21.816c-11.428,0 -50.277,-1.575 -70.522,-21.82c-3.007,-3.008 -3.007,-7.882 0,-10.889c3.003,-2.999 7.882,-3.003 10.885,0c12.777,12.781 40.11,17.317 59.637,17.317c19.522,0 46.86,-4.536 59.657,-17.321c3.016,-2.999 7.886,-2.995 10.885,0.008c3.008,3.011 3.003,7.882 -0.008,10.889Zm-5.23,-48.781c-16.373,0 -29.701,-13.324 -29.701,-29.698c0,-16.381 13.328,-29.714 29.701,-29.714c16.378,0 29.706,13.333 29.706,29.714c0,16.374 -13.328,29.698 -29.706,29.698Zm-160.386,-29.702c0,-16.381 13.328,-29.71 29.714,-29.71c16.369,0 29.689,13.329 29.689,29.71c0,16.373 -13.32,29.693 -29.689,29.693c-16.386,0 -29.714,-13.32 -29.714,-29.693Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share MCP Gateway 3/3: What it takes to run one on facebook"
+            href="https://facebook.com/sharer/sharer.php?u=http%3a%2f%2flocalhost%3a1313%2fposts%2fmcp-gateway-03-what-it-takes-to-run-one%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-106.468,0l0,-192.915l66.6,0l12.672,-82.621l-79.272,0l0,-53.617c0,-22.603 11.073,-44.636 46.58,-44.636l36.042,0l0,-70.34c0,0 -32.71,-5.582 -63.982,-5.582c-65.288,0 -107.96,39.569 -107.96,111.204l0,62.971l-72.573,0l0,82.621l72.573,0l0,192.915l-191.104,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share MCP Gateway 3/3: What it takes to run one on whatsapp"
+            href="https://api.whatsapp.com/send?text=MCP%20Gateway%203%2f3%3a%20What%20it%20takes%20to%20run%20one%20-%20http%3a%2f%2flocalhost%3a1313%2fposts%2fmcp-gateway-03-what-it-takes-to-run-one%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-58.673,127.703c-33.842,-33.881 -78.847,-52.548 -126.798,-52.568c-98.799,0 -179.21,80.405 -179.249,179.234c-0.013,31.593 8.241,62.428 23.927,89.612l-25.429,92.884l95.021,-24.925c26.181,14.28 55.659,21.807 85.658,21.816l0.074,0c98.789,0 179.206,-80.413 179.247,-179.243c0.018,-47.895 -18.61,-92.93 -52.451,-126.81Zm-126.797,275.782l-0.06,0c-26.734,-0.01 -52.954,-7.193 -75.828,-20.767l-5.441,-3.229l-56.386,14.792l15.05,-54.977l-3.542,-5.637c-14.913,-23.72 -22.791,-51.136 -22.779,-79.287c0.033,-82.142 66.867,-148.971 149.046,-148.971c39.793,0.014 77.199,15.531 105.329,43.692c28.128,28.16 43.609,65.592 43.594,105.4c-0.034,82.149 -66.866,148.983 -148.983,148.984Zm81.721,-111.581c-4.479,-2.242 -26.499,-13.075 -30.604,-14.571c-4.105,-1.495 -7.091,-2.241 -10.077,2.241c-2.986,4.483 -11.569,14.572 -14.182,17.562c-2.612,2.988 -5.225,3.364 -9.703,1.12c-4.479,-2.241 -18.91,-6.97 -36.017,-22.23c-13.314,-11.876 -22.304,-26.542 -24.916,-31.026c-2.612,-4.484 -0.279,-6.908 1.963,-9.14c2.016,-2.007 4.48,-5.232 6.719,-7.847c2.24,-2.615 2.986,-4.484 4.479,-7.472c1.493,-2.99 0.747,-5.604 -0.374,-7.846c-1.119,-2.241 -10.077,-24.288 -13.809,-33.256c-3.635,-8.733 -7.327,-7.55 -10.077,-7.688c-2.609,-0.13 -5.598,-0.158 -8.583,-0.158c-2.986,0 -7.839,1.121 -11.944,5.604c-4.105,4.484 -15.675,15.32 -15.675,37.364c0,22.046 16.048,43.342 18.287,46.332c2.24,2.99 31.582,48.227 76.511,67.627c10.685,4.615 19.028,7.371 25.533,9.434c10.728,3.41 20.492,2.929 28.209,1.775c8.605,-1.285 26.499,-10.833 30.231,-21.295c3.732,-10.464 3.732,-19.431 2.612,-21.298c-1.119,-1.869 -4.105,-2.99 -8.583,-5.232Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share MCP Gateway 3/3: What it takes to run one on telegram"
+            href="https://telegram.me/share/url?text=MCP%20Gateway%203%2f3%3a%20What%20it%20takes%20to%20run%20one&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2fmcp-gateway-03-what-it-takes-to-run-one%2f">
+            <svg version="1.1" xml:space="preserve" viewBox="2 2 28 28" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M26.49,29.86H5.5a3.37,3.37,0,0,1-2.47-1,3.35,3.35,0,0,1-1-2.47V5.48A3.36,3.36,0,0,1,3,3,3.37,3.37,0,0,1,5.5,2h21A3.38,3.38,0,0,1,29,3a3.36,3.36,0,0,1,1,2.46V26.37a3.35,3.35,0,0,1-1,2.47A3.38,3.38,0,0,1,26.49,29.86Zm-5.38-6.71a.79.79,0,0,0,.85-.66L24.73,9.24a.55.55,0,0,0-.18-.46.62.62,0,0,0-.41-.17q-.08,0-16.53,6.11a.59.59,0,0,0-.41.59.57.57,0,0,0,.43.52l4,1.24,1.61,4.83a.62.62,0,0,0,.63.43.56.56,0,0,0,.4-.17L16.54,20l4.09,3A.9.9,0,0,0,21.11,23.15ZM13.8,20.71l-1.21-4q8.72-5.55,8.78-5.55c.15,0,.23,0,.23.16a.18.18,0,0,1,0,.06s-2.51,2.3-7.52,6.8Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share MCP Gateway 3/3: What it takes to run one on ycombinator"
+            href="https://news.ycombinator.com/submitlink?t=MCP%20Gateway%203%2f3%3a%20What%20it%20takes%20to%20run%20one&u=http%3a%2f%2flocalhost%3a1313%2fposts%2fmcp-gateway-03-what-it-takes-to-run-one%2f">
+            <svg version="1.1" xml:space="preserve" width="30px" height="30px" viewBox="0 0 512 512" fill="currentColor"
+                xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+                <path
+                    d="M449.446 0C483.971 0 512 28.03 512 62.554L512 449.446C512 483.97 483.97 512 449.446 512L62.554 512C28.03 512 0 483.97 0 449.446L0 62.554C0 28.03 28.029 0 62.554 0L449.446 0ZM183.8767 87.9921H121.8427L230.6673 292.4508V424.0079H281.3328V292.4508L390.1575 87.9921H328.1233L256 238.2489z" />
+            </svg>
+        </a>
+    </li>
+</ul>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">Juergen Neulinger</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script type="module">
+  const blocks = [...document.querySelectorAll('pre.mermaid')];
+  if (blocks.length) {
+    const { default: mermaid } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+
+    
+    
+    blocks.forEach(b => (b.dataset.src = b.textContent));
+
+    const root = document.documentElement;
+    const v = name => getComputedStyle(root).getPropertyValue(name).trim();
+
+    
+    
+    
+    function config() {
+      const dark      = root.dataset.theme === 'dark';
+      const theme     = v('--theme');     
+      const entry     = v('--entry');     
+      const primary   = v('--primary');   
+      const content   = v('--content');   
+      const secondary = v('--secondary');
+      const border    = v('--border');
+      const codeBg    = v('--code-bg');
+      const accent    = dark ? '#7aa2f7' : '#2f6fdb';
+
+      return {
+        startOnLoad: false,
+        theme: 'base',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+        themeVariables: {
+          darkMode: dark,
+          background: theme,
+          fontSize: '15px',
+
+          primaryColor: entry,    primaryTextColor: primary,   primaryBorderColor: accent,
+          secondaryColor: codeBg, secondaryTextColor: content, secondaryBorderColor: border,
+          tertiaryColor: theme,   tertiaryTextColor: content,  tertiaryBorderColor: border,
+
+          mainBkg: entry, nodeBorder: accent, nodeTextColor: primary,
+          lineColor: accent, textColor: content, titleColor: primary,
+          edgeLabelBackground: theme,
+          clusterBkg: codeBg, clusterBorder: border,
+
+           
+          actorBkg: entry, actorBorder: accent, actorTextColor: primary,
+          actorLineColor: secondary,
+          signalColor: content, signalTextColor: content,
+          labelBoxBkgColor: entry, labelBoxBorderColor: accent, labelTextColor: primary,
+          loopTextColor: content,
+          noteBkgColor: codeBg, noteTextColor: content, noteBorderColor: accent,
+          activationBkgColor: codeBg, activationBorderColor: accent,
+          sequenceNumberColor: theme,
+        },
+        flowchart: { useMaxWidth: true, htmlLabels: true, padding: 12, nodeSpacing: 45, rankSpacing: 55 },
+        sequence:  { useMaxWidth: true, actorMargin: 22, boxMargin: 8, noteAlign: 'left', mirrorActors: false, wrap: false },
+      };
+    }
+
+    async function render() {
+      mermaid.initialize(config());
+      for (const b of blocks) {
+        b.textContent = b.dataset.src;
+        b.removeAttribute('data-processed');
+      }
+      await mermaid.run({ nodes: blocks });
+    }
+
+    await render();
+
+    
+    let pending;
+    new MutationObserver(() => {
+      clearTimeout(pending);
+      pending = setTimeout(render, 60);
+    }).observe(root, { attributeFilter: ['data-theme'] });
+  }
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
+        } else {
+            toplink.classList.add("hidden");
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

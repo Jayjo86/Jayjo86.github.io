@@ -1,4 +1,14 @@
-<pre class="mermaid">
-  {{- .Inner | safeHTML }}
-</pre>
-{{ .Page.Store.Set "hasMermaid" true }}
+{{- /* Mermaid code blocks.
+
+  The source is HTML-ESCAPED here, deliberately. Piping it through safeHTML
+  (the usual copy-paste version of this hook) drops the <br/> inside node
+  labels into the DOM as real <br> elements, and Mermaid reads .textContent —
+  so every "first line<br/>second line" label arrived as one run-on string.
+
+  The wrapper lets the diagram break out of the 720px prose column; see
+  .mermaid-figure in layouts/_partials/extend_head.html. The loader lives in
+  layouts/_partials/extend_footer.html and detects pre.mermaid client-side.
+*/ -}}
+<figure class="mermaid-figure">
+  <pre class="mermaid">{{ .Inner }}</pre>
+</figure>

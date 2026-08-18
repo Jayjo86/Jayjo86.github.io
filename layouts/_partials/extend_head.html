@@ -1,0 +1,82 @@
+<style>
+  .series-nav {
+    margin: 0 0 2rem;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--primary);
+    border-radius: var(--radius);
+    background: var(--code-bg);
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+
+  .series-nav__head {
+    margin: 0 0 0.45rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.78rem;
+  }
+
+  .series-nav__head a {
+    text-decoration: none;
+    box-shadow: none;
+  }
+
+  .series-nav__head a:hover {
+    text-decoration: underline;
+  }
+
+  .series-nav__count {
+    font-weight: 400;
+    color: var(--secondary);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .series-nav__list {
+    margin: 0;
+    padding-left: 1.4rem;
+  }
+
+  .series-nav__list li {
+    margin: 0.15rem 0;
+  }
+
+  .series-nav__list li::marker {
+    color: var(--secondary);
+  }
+
+  .series-nav__current {
+    color: var(--secondary);
+  }
+
+  .series-nav__current em {
+    font-style: normal;
+    font-size: 0.85em;
+    opacity: 0.75;
+  }
+
+  /* --- mermaid diagrams ------------------------------------------------- */
+  .mermaid-figure {
+    /* Break out of the 720px prose column. These diagrams are wide; being
+       squeezed into the column is what scaled the labels down to unreadable. */
+    width: min(100vw - 2.5rem, 1140px);
+    margin: 2rem 0 2rem 50%;
+    transform: translateX(-50%);
+    overflow-x: auto;
+  }
+  .post-content pre.mermaid {
+    background: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+    white-space: normal;
+    line-height: normal;
+  }
+  .post-content pre.mermaid svg { max-width: 100%; height: auto; }
+  /* Hide the raw source until Mermaid has drawn it (and while it redraws on a
+     theme switch) — otherwise a wall of flowchart syntax flashes in first. */
+  .post-content pre.mermaid:not([data-processed]) { visibility: hidden; }
+</style>

@@ -11,13 +11,48 @@
     </image>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Mon, 08 Jun 2026 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Wed, 24 Jun 2026 00:00:00 +0000</lastBuildDate>
     <atom:link href="http://localhost:1313/tags/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>Architecture</title>
       <link>http://localhost:1313/tags/architecture/</link>
-      <pubDate>Mon, 08 Jun 2026 00:00:00 +0000</pubDate>
+      <pubDate>Wed, 24 Jun 2026 00:00:00 +0000</pubDate>
       <guid>http://localhost:1313/tags/architecture/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Compliance</title>
+      <link>http://localhost:1313/tags/compliance/</link>
+      <pubDate>Wed, 24 Jun 2026 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/tags/compliance/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Dbos</title>
+      <link>http://localhost:1313/tags/dbos/</link>
+      <pubDate>Wed, 24 Jun 2026 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/tags/dbos/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Durable-Execution</title>
+      <link>http://localhost:1313/tags/durable-execution/</link>
+      <pubDate>Wed, 24 Jun 2026 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/tags/durable-execution/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Regulation</title>
+      <link>http://localhost:1313/tags/regulation/</link>
+      <pubDate>Wed, 24 Jun 2026 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/tags/regulation/</guid>
+      <description></description>
+    </item>
+    <item>
+      <title>Temporal</title>
+      <link>http://localhost:1313/tags/temporal/</link>
+      <pubDate>Wed, 24 Jun 2026 00:00:00 +0000</pubDate>
+      <guid>http://localhost:1313/tags/temporal/</guid>
       <description></description>
     </item>
     <item>

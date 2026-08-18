@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto" data-theme="auto">
+
+<head><script src="/livereload.js?mindelay=10&amp;v=2&amp;port=1313&amp;path=livereload" data-no-instant defer></script><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="noindex, nofollow">
+<title>MCP Gateway 2/3: Three layers of policy | Juergen Neulinger</title>
+<meta name="keywords" content="mcp, gateway, architecture, security, authorization, opa, rego">
+<meta name="description" content="Splitting MCP authorization across three Rego layers with three owners — platform, domain team, tool owner — so that no team can widen another team&#39;s grant.">
+<meta name="author" content="">
+<link rel="canonical" href="http://localhost:1313/posts/mcp-gateway-02-three-layers-of-policy/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.89ca4972ab5e6aaa05e9a0dae0c4bb64b26585bc79e36f5cf33614eea0283abe.css" integrity="sha256-icpJcqteaqoF6aDa4MS7ZLJlhbx5429c8zYU7qAoOr4=" rel="preload stylesheet" as="style">
+<link rel="icon" href="http://localhost:1313/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="http://localhost:1313/favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="http://localhost:1313/favicon-32x32.png">
+<link rel="apple-touch-icon" href="http://localhost:1313/apple-touch-icon.png">
+<link rel="mask-icon" href="http://localhost:1313/safari-pinned-tab.svg">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="http://localhost:1313/posts/mcp-gateway-02-three-layers-of-policy/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script><style>
+  .series-nav {
+    margin: 0 0 2rem;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--primary);
+    border-radius: var(--radius);
+    background: var(--code-bg);
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+
+  .series-nav__head {
+    margin: 0 0 0.45rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.78rem;
+  }
+
+  .series-nav__head a {
+    text-decoration: none;
+    box-shadow: none;
+  }
+
+  .series-nav__head a:hover {
+    text-decoration: underline;
+  }
+
+  .series-nav__count {
+    font-weight: 400;
+    color: var(--secondary);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .series-nav__list {
+    margin: 0;
+    padding-left: 1.4rem;
+  }
+
+  .series-nav__list li {
+    margin: 0.15rem 0;
+  }
+
+  .series-nav__list li::marker {
+    color: var(--secondary);
+  }
+
+  .series-nav__current {
+    color: var(--secondary);
+  }
+
+  .series-nav__current em {
+    font-style: normal;
+    font-size: 0.85em;
+    opacity: 0.75;
+  }
+
+   
+  .mermaid-figure {
+     
+    width: min(100vw - 2.5rem, 1140px);
+    margin: 2rem 0 2rem 50%;
+    transform: translateX(-50%);
+    overflow-x: auto;
+  }
+  .post-content pre.mermaid {
+    background: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+    white-space: normal;
+    line-height: normal;
+  }
+  .post-content pre.mermaid svg { max-width: 100%; height: auto; }
+   
+  .post-content pre.mermaid:not([data-processed]) { visibility: hidden; }
+</style>
+
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="http://localhost:1313/" accesskey="h" title="Juergen Neulinger (Alt + H)">Juergen Neulinger</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="http://localhost:1313/posts/" title="Posts">
+                    <span>Posts</span>
+                </a>
+            </li>
+            <li>
+                <a href="http://localhost:1313/about/" title="About">
+                    <span>About</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    
+    <h1 class="post-title entry-hint-parent">
+      MCP Gateway 2/3: Three layers of policy
+      <span class="entry-hint" title="Draft">
+        <svg xmlns="http://www.w3.org/2000/svg" height="35" viewBox="0 -960 960 960" fill="currentColor">
+          <path
+            d="M160-410v-60h300v60H160Zm0-165v-60h470v60H160Zm0-165v-60h470v60H160Zm360 580v-123l221-220q9-9 20-13t22-4q12 0 23 4.5t20 13.5l37 37q9 9 13 20t4 22q0 11-4.5 22.5T862.09-380L643-160H520Zm300-263-37-37 37 37ZM580-220h38l121-122-18-19-19-18-122 121v38Zm141-141-19-18 37 37-18-19Z" />
+        </svg>
+      </span>
+    </h1>
+    <div class="post-description">
+      Splitting MCP authorization across three Rego layers with three owners — platform, domain team, tool owner — so that no team can widen another team&#39;s grant.
+    </div>
+    <div class="post-meta">
+
+<span title='2026-08-18 11:12:43 +0200 CEST'>August 18, 2026</span>&nbsp;·&nbsp;<span>11 min</span>
+
+</div>
+  </header> <details class="toc" >
+    <summary accesskey="c" title="(Alt + C)">
+        <span class="title">Table of Contents</span>
+    </summary>
+
+    <div class="inner"><ul>
+            <li>
+                <a href="#where-we-are" aria-label="Where we are">Where we are</a></li>
+            <li>
+                <a href="#the-policy-three-rego-layers-three-owners" aria-label="The policy: three Rego layers, three owners">The policy: three Rego layers, three owners</a><ul>
+                    
+            <li>
+                <a href="#layer-1--platform-which-agent-may-talk-to-this-gateway-at-all" aria-label="Layer 1 — platform: which agent may talk to this gateway at all">Layer 1 — platform: which agent may talk to this gateway at all</a></li>
+            <li>
+                <a href="#layer-2--domain-which-users-may-reach-which-backend" aria-label="Layer 2 — domain: which users may reach which backend">Layer 2 — domain: which users may reach which backend</a></li>
+            <li>
+                <a href="#layer-3--tool-what-this-specific-tool-requires" aria-label="Layer 3 — tool: what this specific tool requires">Layer 3 — tool: what this specific tool requires</a></li>
+            <li>
+                <a href="#the-rego-trap-that-cost-me-an-afternoon" aria-label="The Rego trap that cost me an afternoon">The Rego trap that cost me an afternoon</a></li>
+            <li>
+                <a href="#reporting-the-right-denial" aria-label="Reporting the right denial">Reporting the right denial</a></li></ul>
+            </li>
+            <li>
+                <a href="#next" aria-label="Next">Next</a>
+            </li>
+        </ul>
+    </div>
+</details>
+
+  <div class="post-content md-content"><p><em>Part 2 of three, on a reference MCP gateway built with FastMCP, OPA and Microsoft Entra ID. This part is the policy design — the part I would carry into any implementation, on any substrate.</em></p>
+<aside class="series-nav" aria-label="Series navigation">
+    <p class="series-nav__head">
+      <a href="/series/mcp-gateway/">MCP Gateway</a>
+      <span class="series-nav__count">&middot; part 2 of 3</span>
+    </p>
+    <ol class="series-nav__list">
+      <li><a href="/posts/mcp-gateway-01-why-you-need-one/">Why you need a gateway</a></li>
+      <li class="series-nav__current" aria-current="true" ><span>Three layers of policy</span> <em>(you are here)</em></li>
+      <li><a href="/posts/mcp-gateway-03-what-it-takes-to-run-one/">What it takes to run one</a></li>
+    </ol>
+  </aside>
+<hr>
+<h2 id="where-we-are">Where we are<a hidden class="anchor" aria-hidden="true" href="#where-we-are">#</a></h2>
+<p><a href="/posts/mcp-gateway-01-why-you-need-one/">Part 1</a> built the control point. The gateway is an OAuth 2.1 authorization server to MCP clients and a confidential client to Entra ID behind the scenes, it never forwards the inbound token, and it asks an OPA sidecar for a decision <em>before</em> any downstream credential comes into existence.</p>
+<p>This part is the decision itself, and it is the most portable thing in the series. The Rego below is specific to OPA, and the roles are specific to Entra, but the shape — who owns which rule, and what happens when two owners disagree — survives a change of both. If you are evaluating a vendor&rsquo;s gateway rather than building one, this is the section to read with their docs open next to it.</p>
+<p>One thing from Part 1 is load-bearing here, so it is worth one more line. <strong>Three identities ride on every request</strong>: the <em>actor</em> (the human, from Entra&rsquo;s <code>sub</code> / <code>upn</code> / <code>roles</code>), the <em>agent</em> (the MCP client program — Claude Code, Cursor, a script — identified by the client ID this gateway&rsquo;s own OAuth server issued at registration), and the <em>broker</em> (this gateway, Entra&rsquo;s <code>azp</code>, a constant on every request ever made). Collapsing the last two is the easiest way to build a gateway that looks like it authorizes and doesn&rsquo;t. The policy below decides on the first two, separately and for different reasons.</p>
+<hr>
+<h2 id="the-policy-three-rego-layers-three-owners">The policy: three Rego layers, three owners<a hidden class="anchor" aria-hidden="true" href="#the-policy-three-rego-layers-three-owners">#</a></h2>
+<p>The bundle is split by <strong>who owns the rule</strong>, not by what the rule checks. Each layer is a separate file with its own CODEOWNERS entry, and a tool call resolves to a single decision:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rego" data-lang="rego"><span class="line"><span class="cl"><span class="kd">default</span><span class="w"> </span><span class="nx">allow</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="kc">false</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="n">allow</span><span class="w"> </span><span class="kd">if</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="nx">platform_allow</span><span class="w">   </span><span class="c"># platform team</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="nx">domain_allow</span><span class="w">     </span><span class="c"># domain team</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="nx">tool_allow</span><span class="w">       </span><span class="c"># tool team</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>Three teams ship independently, and no team can widen another team&rsquo;s grant, because a conjunction makes every layer a veto. That is the whole trick, and it is worth being deliberate about: the moment someone adds a fourth rule joined by <code>or</code> to unblock a launch, the property is gone and nobody will notice for months.</p>
+<p>All the facts the layers decide against live in one <code>data.json</code> that ships with the bundle.</p>
+<h3 id="layer-1--platform-which-agent-may-talk-to-this-gateway-at-all">Layer 1 — platform: which agent may talk to this gateway at all<a hidden class="anchor" aria-hidden="true" href="#layer-1--platform-which-agent-may-talk-to-this-gateway-at-all">#</a></h3>
+<p>This is the supply-chain layer. It answers &ldquo;is Claude Code allowed here, or only our internally vetted client?&rdquo; and says nothing about the human.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rego" data-lang="rego"><span class="line"><span class="cl"><span class="c"># Absent key → &#34;audit&#34;. An unrecognised value denies everything with an explicit</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="c"># reason, so a typo fails loudly instead of silently disabling the control.</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="n">_enforcement</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">object</span><span class="o">.</span><span class="nf">get</span><span class="p">(</span><span class="nx">data</span><span class="o">.</span><span class="nx">platform</span><span class="o">,</span><span class="w"> </span><span class="s2">&#34;agent_enforcement&#34;</span><span class="o">,</span><span class="w"> </span><span class="s2">&#34;audit&#34;</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="c"># &#34;audit&#34; — the agent id reaches the PDP and the audit row and gates nothing.</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="n">agent_ok</span><span class="w"> </span><span class="kd">if</span><span class="w"> </span><span class="nx">_enforcement</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&#34;audit&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="c"># &#34;allowlist&#34; — opt in to the supply-chain control.</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="n">agent_ok</span><span class="w"> </span><span class="kd">if</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="nx">_enforcement</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&#34;allowlist&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="nx">agent_trusted</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="n">agent_trusted</span><span class="w"> </span><span class="kd">if</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="nx">input</span><span class="o">.</span><span class="nx">agent</span><span class="o">.</span><span class="nx">kind</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&#34;cimd&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="nx">input</span><span class="o">.</span><span class="nx">agent</span><span class="o">.</span><span class="nx">id</span><span class="w"> </span><span class="kd">in</span><span class="w"> </span><span class="nx">data</span><span class="o">.</span><span class="nx">platform</span><span class="o">.</span><span class="nx">allowed_agents</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-json" data-lang="json"><span class="line"><span class="cl"><span class="s2">&#34;platform&#34;</span><span class="err">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;agent_enforcement&#34;</span><span class="p">:</span> <span class="s2">&#34;allowlist&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;allowed_agents&#34;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&#34;https://claude.ai/oauth/claude-code-client-metadata&#34;</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;allowed_dynamic_client_ids&#34;</span><span class="p">:</span> <span class="p">[]</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>Two decisions here that I would make the same way again.</p>
+<p><strong>The default is &ldquo;record it, don&rsquo;t gate on it.&rdquo;</strong> Authorization in this gateway is the <em>user&rsquo;s</em>. The domain and tool layers both decide on Entra-signed <code>roles</code>, and that is the load-bearing control; it works completely without this layer. Agent identity is primarily attribution — which client software did this, on every audit row — which is a NIS2 and DORA reporting obligation rather than an authorization one.</p>
+<p>Gating on it is a real supply-chain control, but a coarse one. The session token is a bearer token, so an allowlist governs who was <em>issued</em> one, never who is <em>using</em> one. The control that fires at the right moment against a hostile client is the OAuth consent interstitial, not this rule. Turning the allowlist on is a reasonable thing to want; believing it is your primary defense is not.</p>
+<p><strong>CIMD entries scale, DCR entries don&rsquo;t.</strong> Allowlisting a CIMD URL covers every installation of that client software everywhere. Allowlisting a DCR UUID covers one machine until it re-registers. Both are supported, and there is a test in the repo that fails if someone drops a non-CIMD string into <code>allowed_agents</code>, where it could never match anything.</p>
+<p>The deny reason names the exact string to paste into <code>data.json</code>:</p>
+<pre tabindex="0"><code>agent &#34;9f2c1a4e-...&#34; (dcr) is not on the platform allowlist
+</code></pre><p>That turns &ldquo;turn enforcement on&rdquo; from a log-diving exercise into self-service, which matters more than it sounds: the moment this layer stops being a tautology, it starts denying, and the person it denies first is usually you, on a Friday.</p>
+<h3 id="layer-2--domain-which-users-may-reach-which-backend">Layer 2 — domain: which users may reach which backend<a hidden class="anchor" aria-hidden="true" href="#layer-2--domain-which-users-may-reach-which-backend">#</a></h3>
+<p>Owned by the team that runs each MCP server. This is where the human&rsquo;s entitlements enter.</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rego" data-lang="rego"><span class="line"><span class="cl"><span class="n">domain_allow</span><span class="w"> </span><span class="kd">if</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="nx">server</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">data</span><span class="o">.</span><span class="nx">tools</span><span class="p">[</span><span class="nx">input</span><span class="o">.</span><span class="nx">tool</span><span class="p">]</span><span class="o">.</span><span class="nx">server</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="nx">server</span><span class="w"> </span><span class="kd">in</span><span class="w"> </span><span class="nx">data</span><span class="o">.</span><span class="nx">domain</span><span class="o">.</span><span class="nx">enabled_servers</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="kd">some</span><span class="w"> </span><span class="nx">r</span><span class="w"> </span><span class="kd">in</span><span class="w"> </span><span class="nx">input</span><span class="o">.</span><span class="nx">actor</span><span class="o">.</span><span class="nx">roles</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="nx">r</span><span class="w"> </span><span class="kd">in</span><span class="w"> </span><span class="nx">data</span><span class="o">.</span><span class="nx">domain</span><span class="o">.</span><span class="nx">server_roles</span><span class="p">[</span><span class="nx">server</span><span class="p">]</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-json" data-lang="json"><span class="line"><span class="cl"><span class="s2">&#34;domain&#34;</span><span class="err">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;enabled_servers&#34;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&#34;mcp-server-a&#34;</span><span class="p">,</span> <span class="s2">&#34;mcp-server-b&#34;</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;server_roles&#34;</span><span class="p">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&#34;mcp-server-a&#34;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&#34;crm.read&#34;</span><span class="p">],</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&#34;mcp-server-b&#34;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&#34;ledger.read&#34;</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">  <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>Coarse on purpose: it is a door, not a lock. Holding <code>crm.read</code> gets you <em>to</em> the CRM backend, and what you may do once you are there is the next layer&rsquo;s problem. A domain team can also disable its whole server through <code>enabled_servers</code> without touching anyone else&rsquo;s rules, which is where change-freeze windows and environment gates end up living naturally.</p>
+<p><strong>Authorize on Entra app roles, not raw directory groups.</strong> This is the trap I sidestepped deliberately, and it is worth the paragraph because it fails in the worst possible way. Entra drops the <code>groups</code> claim entirely once a user is a member of more than 200 groups in a JWT access token (150 in SAML), and replaces it with a Graph pointer to fetch the list. Policy that authorizes on groups therefore silently denies your most heavily grouped users — who tend to be your most senior ones — and only in production, and only for some of them. App roles never overflow. If you want group-based administration, assign a directory <em>group to an app role</em> in Entra and let the token carry the small role value instead.</p>
+<p><strong>This layer also gates <code>tools/list</code>.</strong> A list operation has to decide whether to mint a downstream credential for a whole backend <em>before</em> any specific tool is known, so it can&rsquo;t route through <code>domain_allow</code>, which looks the server up via the tool. A parallel <code>list_allow</code> rule takes <code>input.server</code> directly and folds in the platform check:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rego" data-lang="rego"><span class="line"><span class="cl"><span class="n">list_allow</span><span class="w"> </span><span class="kd">if</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="nx">_server_enabled</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="nx">_has_role_for_server</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="nx">agent_ok</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p>Without it, <code>tools/list</code> is a free pass. A principal holding zero app roles still triggers a full round of Entra token exchanges, unaudited, on the path that runs most often. Enumeration is an authorization decision, and treating it as plumbing is how gateways end up with a hole in the exact place their diagram claims to be a chokepoint.</p>
+<p><strong>It is also where the catalogue gets reconciled.</strong> &ldquo;Discover the tools from the backends&rdquo; is usually proposed as something the gateway does at <em>its own</em> boot, and that doesn&rsquo;t work. At boot there is no user, so discovery has to use client credentials — and a backend running the <code>obo</code> profile may have no app-role assignment for the gateway at all. You would be forcing an M2M grant onto every backend purely so the gateway can read a list.</p>
+<p>The discovery call you actually want is the one the <strong>agent</strong> already makes. A client connects, sends <code>tools/list</code>, the gateway fans out to each mounted proxy, and each backend answers with its real tool set — with a user token behind it, so OBO works. By the time the middleware has that list in hand it <em>is</em> the discovered catalogue, and reconciling it against the governance overlay costs one comparison:</p>
+<ul>
+<li>a tool the registry and <code>data.json</code> both know about is listed, subject to the role check below;</li>
+<li>a tool they don&rsquo;t know about is <strong>dropped</strong>, and named once at WARNING.</li>
+</ul>
+<p>Dropping it is the point. Before that change an ungoverned tool was listed and then denied as unknown when someone called it, which meant the gateway advertised a capability it would always refuse. Fail-closed and silent is still a bug. Fail-closed and loud is a control.</p>
+<h3 id="layer-3--tool-what-this-specific-tool-requires">Layer 3 — tool: what this specific tool requires<a hidden class="anchor" aria-hidden="true" href="#layer-3--tool-what-this-specific-tool-requires">#</a></h3>
+<p>Owned by whoever owns the tool. Two kinds of constraint.</p>
+<p><strong>An elevated app role</strong>, for tools that need more than &ldquo;you may reach this backend&rdquo;:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rego" data-lang="rego"><span class="line"><span class="cl"><span class="n">role_ok</span><span class="w"> </span><span class="kd">if</span><span class="w"> </span><span class="nx">_configured_role</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&#34;&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="n">role_ok</span><span class="w"> </span><span class="kd">if</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="nx">_configured_role</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="s2">&#34;&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="nx">_configured_role</span><span class="w"> </span><span class="kd">in</span><span class="w"> </span><span class="nx">input</span><span class="o">.</span><span class="nx">actor</span><span class="o">.</span><span class="nx">roles</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><p><strong>Content-based constraints on the actual arguments</strong>, so policy can cap an amount or restrict an enum:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rego" data-lang="rego"><span class="line"><span class="cl"><span class="n">args_ok</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="kd">if</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="nx">input</span><span class="o">.</span><span class="nx">tool</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s2">&#34;ledger_post_entry&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="nx">_ledger_amount_present</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="nf">is_number</span><span class="p">(</span><span class="nx">input</span><span class="o">.</span><span class="nx">args</span><span class="o">.</span><span class="nx">amount</span><span class="p">)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">	</span><span class="nf">abs</span><span class="p">(</span><span class="nx">input</span><span class="o">.</span><span class="nx">args</span><span class="o">.</span><span class="nx">amount</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="nx">data</span><span class="o">.</span><span class="nx">tools</span><span class="o">.</span><span class="nx">ledger_post_entry</span><span class="o">.</span><span class="nx">max_amount</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="p">}</span><span class="w">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-json" data-lang="json"><span class="line"><span class="cl"><span class="s2">&#34;ledger_post_entry&#34;</span><span class="err">:</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;server&#34;</span><span class="p">:</span> <span class="s2">&#34;mcp-server-b&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;required_role&#34;</span><span class="p">:</span> <span class="s2">&#34;Ledger.Write&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">  <span class="nt">&#34;max_amount&#34;</span><span class="p">:</span> <span class="mi">1000000</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></div><p>Note the <code>abs()</code>. A large <em>negative</em> posting is exactly as significant to a ledger as a positive one, and a cap written as <code>amount &gt; max</code> waves it straight through. Half the value of putting a constraint like this in Rego rather than inside the tool is that it becomes reviewable by someone who is not the tool&rsquo;s author, and this is the kind of thing that reviewer catches.</p>
+<p><strong>But content-based policy needs real values, and real values are the problem.</strong> Sending every argument to the PDP means customer names, memos and amounts cross a process boundary on every single call. That is defensible for a co-located sidecar and indefensible the moment a platform team centralises OPA, which is what happens in year two.</p>
+<p>So each tool declares the fields its policy actually reads, and nothing else is sent:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-python" data-lang="python"><span class="line"><span class="cl"><span class="s2">&#34;ledger_post_entry&#34;</span><span class="p">:</span> <span class="n">ToolMeta</span><span class="p">(</span>
+</span></span><span class="line"><span class="cl">    <span class="o">...</span>
+</span></span><span class="line"><span class="cl">    <span class="n">required_role</span><span class="o">=</span><span class="s2">&#34;Ledger.Write&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">downstream_scope</span><span class="o">=</span><span class="s2">&#34;Ledger.Write&#34;</span><span class="p">,</span>
+</span></span><span class="line"><span class="cl">    <span class="n">policy_args</span><span class="o">=</span><span class="p">(</span><span class="s2">&#34;amount&#34;</span><span class="p">,),</span>   <span class="c1"># tool.rego caps amount at max_amount</span>
+</span></span><span class="line"><span class="cl"><span class="p">)</span>
+</span></span></code></pre></div><p>An allowlist, not a denylist, so adding an argument to a tool cannot silently start leaking it. The projection happens inside <code>build_input</code>, which is the single place an argument can reach the PDP, rather than trusting each caller to pre-filter. The audit row still hashes the <em>full</em> argument set, because the hash has to identify the call that actually ran.</p>
+<p>It fails in the safe direction too. Forget to declare an argument the Rego constrains and it arrives absent, so the presence check denies — a confusing denial rather than a silently unenforced cap. And because both artifacts live in the same repo, a test parses <code>input.args.X</code> out of <code>tool.rego</code> and asserts the registry declares it, in both directions: nothing constrained that isn&rsquo;t sent, nothing sent that isn&rsquo;t constrained.</p>
+<h3 id="the-rego-trap-that-cost-me-an-afternoon">The Rego trap that cost me an afternoon<a hidden class="anchor" aria-hidden="true" href="#the-rego-trap-that-cost-me-an-afternoon">#</a></h3>
+<p>There is a subtlety here I would bet most content-based policies get wrong, because the intuitive fix and the correct fix look identical. <strong>You cannot fail closed on a missing argument by negating a builtin.</strong></p>
+<p>Given an absent <code>input.args.amount</code>:</p>
+<ul>
+<li><code>input.args.amount &gt; max</code> is undefined, so the rule never fires and <code>default args_ok := true</code> quietly wins. Most people spot this one.</li>
+<li><code>not is_number(input.args.amount)</code> looks like the fix. It isn&rsquo;t. It also never fires.</li>
+</ul>
+<p>The second one is the surprise, because everyone knows Rego&rsquo;s <code>not</code> succeeds on an undefined expression — <code>not input.args.amount</code> on an absent key really is true. The difference is the builtin call. OPA rewrites a ref inside a negated expression into an assignment hoisted <em>outside</em> the <code>not</code>, roughly <code>__local0__ = input.args.amount; not is_number(__local0__)</code>. The assignment is undefined, so the body is undefined before the negation is ever evaluated, and the rule contributes nothing.</p>
+<p>You can watch it happen in about thirty seconds:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rego" data-lang="rego"><span class="line"><span class="cl"><span class="kd">package</span><span class="w"> </span><span class="nx">trap</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="kd">default</span><span class="w"> </span><span class="nx">b_ok</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="kc">true</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="n">b_ok</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="kd">if</span><span class="w"> </span><span class="kd">not</span><span class="w"> </span><span class="nf">is_number</span><span class="p">(</span><span class="nx">input</span><span class="o">.</span><span class="nx">args</span><span class="o">.</span><span class="nx">amount</span><span class="p">)</span><span class="w">
+</span></span></span></code></pre></div><div class="highlight"><pre tabindex="0" class="chroma"><code class="language-console" data-lang="console"><span class="line"><span class="cl"><span class="gp">$</span> <span class="nb">echo</span> <span class="s1">&#39;{&#34;args&#34;: {}}&#39;</span> <span class="p">|</span> opa <span class="nb">eval</span> -d trap.rego -I -f raw <span class="s1">&#39;data.trap.b_ok&#39;</span>
+</span></span><span class="line"><span class="cl"><span class="go">true      # the constraint did not fire
+</span></span></span></code></pre></div><p>The fix is to check presence over a concrete key set first, because membership is always defined whether the key is there or not:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rego" data-lang="rego"><span class="line"><span class="cl"><span class="n">_ledger_amount_present</span><span class="w"> </span><span class="kd">if</span><span class="w"> </span><span class="s2">&#34;amount&#34;</span><span class="w"> </span><span class="kd">in</span><span class="w"> </span><span class="nx">object</span><span class="o">.</span><span class="nf">keys</span><span class="p">(</span><span class="nx">input</span><span class="o">.</span><span class="nx">args</span><span class="p">)</span><span class="w">
+</span></span></span></code></pre></div><p>Miss it and you have a policy that reads like a cap and enforces nothing whenever the argument is omitted — which is precisely the input an attacker sends. Deny-by-default at the <em>rule</em> level does not give you deny-by-default at the <em>field</em> level, and that surprises people who have been writing Rego for years.</p>
+<h3 id="reporting-the-right-denial">Reporting the right denial<a hidden class="anchor" aria-hidden="true" href="#reporting-the-right-denial">#</a></h3>
+<p>One more detail, with a wildly disproportionate impact on the people operating this thing. When the tool layer denies, the gateway needs to know <em>why</em>, so it can raise a <code>MissingEntitlement</code> naming the role to request. But <code>required_role</code> must only be exported when the role check is what actually failed:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-rego" data-lang="rego"><span class="line"><span class="cl"><span class="kd">default</span><span class="w"> </span><span class="nx">required_role</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="s2">&#34;&#34;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="n">required_role</span><span class="w"> </span><span class="o">:=</span><span class="w"> </span><span class="nx">_configured_role</span><span class="w"> </span><span class="kd">if</span><span class="w"> </span><span class="kd">not</span><span class="w"> </span><span class="nx">role_ok</span><span class="w">
+</span></span></span></code></pre></div><p>Export it whenever a tool merely <em>has</em> a configured role, and an args-only denial — an amount over the cap — tells an administrator to grant a role the caller already holds. Someone then spends an afternoon in the Entra portal fixing a problem that was never about entitlements, and in the worst version of this they grant a write role to fix what was actually a read problem. Bad error messages are a privilege-escalation vector; this is the cheapest place to prove it to yourself.</p>
+<hr>
+<h2 id="next">Next<a hidden class="anchor" aria-hidden="true" href="#next">#</a></h2>
+<p>Three layers, three owners, one conjunction, and no team able to widen another team&rsquo;s grant. That is the design I would keep, and the one I would hold a product to.</p>
+<p>What I have not done is tell you where it stops. <a href="/posts/mcp-gateway-03-what-it-takes-to-run-one/">Part 3: What it takes to run one</a> is the honest accounting — the deliberate simplifications, the protocol revision this targets and what the newer one changes, and the consolidated list of everything still missing for production.</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="http://localhost:1313/tags/mcp/">Mcp</a></li>
+      <li><a href="http://localhost:1313/tags/gateway/">Gateway</a></li>
+      <li><a href="http://localhost:1313/tags/architecture/">Architecture</a></li>
+      <li><a href="http://localhost:1313/tags/security/">Security</a></li>
+      <li><a href="http://localhost:1313/tags/authorization/">Authorization</a></li>
+      <li><a href="http://localhost:1313/tags/opa/">Opa</a></li>
+      <li><a href="http://localhost:1313/tags/rego/">Rego</a></li>
+    </ul>
+
+<ul class="share-buttons">
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share MCP Gateway 2/3: Three layers of policy on x"
+            href="https://x.com/intent/tweet/?text=MCP%20Gateway%202%2f3%3a%20Three%20layers%20of%20policy&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2fmcp-gateway-02-three-layers-of-policy%2f&amp;hashtags=mcp%2cgateway%2carchitecture%2csecurity%2cauthorization%2copa%2crego">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M512 62.554 L 512 449.446 C 512 483.97 483.97 512 449.446 512 L 62.554 512 C 28.03 512 0 483.97 0 449.446 L 0 62.554 C 0 28.03 28.029 0 62.554 0 L 449.446 0 C 483.971 0 512 28.03 512 62.554 Z M 269.951 190.75 L 182.567 75.216 L 56 75.216 L 207.216 272.95 L 63.9 436.783 L 125.266 436.783 L 235.9 310.383 L 332.567 436.783 L 456 436.783 L 298.367 228.367 L 432.367 75.216 L 371.033 75.216 Z M 127.633 110 L 164.101 110 L 383.481 400.065 L 349.5 400.065 Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share MCP Gateway 2/3: Three layers of policy on linkedin"
+            href="https://www.linkedin.com/shareArticle?mini=true&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2fmcp-gateway-02-three-layers-of-policy%2f&amp;title=MCP%20Gateway%202%2f3%3a%20Three%20layers%20of%20policy&amp;summary=MCP%20Gateway%202%2f3%3a%20Three%20layers%20of%20policy&amp;source=http%3a%2f%2flocalhost%3a1313%2fposts%2fmcp-gateway-02-three-layers-of-policy%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-288.985,423.278l0,-225.717l-75.04,0l0,225.717l75.04,0Zm270.539,0l0,-129.439c0,-69.333 -37.018,-101.586 -86.381,-101.586c-39.804,0 -57.634,21.891 -67.617,37.266l0,-31.958l-75.021,0c0.995,21.181 0,225.717 0,225.717l75.02,0l0,-126.056c0,-6.748 0.486,-13.492 2.474,-18.315c5.414,-13.475 17.767,-27.434 38.494,-27.434c27.135,0 38.007,20.707 38.007,51.037l0,120.768l75.024,0Zm-307.552,-334.556c-25.674,0 -42.448,16.879 -42.448,39.002c0,21.658 16.264,39.002 41.455,39.002l0.484,0c26.165,0 42.452,-17.344 42.452,-39.002c-0.485,-22.092 -16.241,-38.954 -41.943,-39.002Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share MCP Gateway 2/3: Three layers of policy on reddit"
+            href="https://reddit.com/submit?url=http%3a%2f%2flocalhost%3a1313%2fposts%2fmcp-gateway-02-three-layers-of-policy%2f&title=MCP%20Gateway%202%2f3%3a%20Three%20layers%20of%20policy">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-3.446,265.638c0,-22.964 -18.616,-41.58 -41.58,-41.58c-11.211,0 -21.361,4.457 -28.841,11.666c-28.424,-20.508 -67.586,-33.757 -111.204,-35.278l18.941,-89.121l61.884,13.157c0.756,15.734 13.642,28.29 29.56,28.29c16.407,0 29.706,-13.299 29.706,-29.701c0,-16.403 -13.299,-29.702 -29.706,-29.702c-11.666,0 -21.657,6.792 -26.515,16.578l-69.105,-14.69c-1.922,-0.418 -3.939,-0.042 -5.585,1.036c-1.658,1.073 -2.811,2.761 -3.224,4.686l-21.152,99.438c-44.258,1.228 -84.046,14.494 -112.837,35.232c-7.468,-7.164 -17.589,-11.591 -28.757,-11.591c-22.965,0 -41.585,18.616 -41.585,41.58c0,16.896 10.095,31.41 24.568,37.918c-0.639,4.135 -0.99,8.328 -0.99,12.576c0,63.977 74.469,115.836 166.33,115.836c91.861,0 166.334,-51.859 166.334,-115.836c0,-4.218 -0.347,-8.387 -0.977,-12.493c14.564,-6.47 24.735,-21.034 24.735,-38.001Zm-119.474,108.193c-20.27,20.241 -59.115,21.816 -70.534,21.816c-11.428,0 -50.277,-1.575 -70.522,-21.82c-3.007,-3.008 -3.007,-7.882 0,-10.889c3.003,-2.999 7.882,-3.003 10.885,0c12.777,12.781 40.11,17.317 59.637,17.317c19.522,0 46.86,-4.536 59.657,-17.321c3.016,-2.999 7.886,-2.995 10.885,0.008c3.008,3.011 3.003,7.882 -0.008,10.889Zm-5.23,-48.781c-16.373,0 -29.701,-13.324 -29.701,-29.698c0,-16.381 13.328,-29.714 29.701,-29.714c16.378,0 29.706,13.333 29.706,29.714c0,16.374 -13.328,29.698 -29.706,29.698Zm-160.386,-29.702c0,-16.381 13.328,-29.71 29.714,-29.71c16.369,0 29.689,13.329 29.689,29.71c0,16.373 -13.32,29.693 -29.689,29.693c-16.386,0 -29.714,-13.32 -29.714,-29.693Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share MCP Gateway 2/3: Three layers of policy on facebook"
+            href="https://facebook.com/sharer/sharer.php?u=http%3a%2f%2flocalhost%3a1313%2fposts%2fmcp-gateway-02-three-layers-of-policy%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-106.468,0l0,-192.915l66.6,0l12.672,-82.621l-79.272,0l0,-53.617c0,-22.603 11.073,-44.636 46.58,-44.636l36.042,0l0,-70.34c0,0 -32.71,-5.582 -63.982,-5.582c-65.288,0 -107.96,39.569 -107.96,111.204l0,62.971l-72.573,0l0,82.621l72.573,0l0,192.915l-191.104,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share MCP Gateway 2/3: Three layers of policy on whatsapp"
+            href="https://api.whatsapp.com/send?text=MCP%20Gateway%202%2f3%3a%20Three%20layers%20of%20policy%20-%20http%3a%2f%2flocalhost%3a1313%2fposts%2fmcp-gateway-02-three-layers-of-policy%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-58.673,127.703c-33.842,-33.881 -78.847,-52.548 -126.798,-52.568c-98.799,0 -179.21,80.405 -179.249,179.234c-0.013,31.593 8.241,62.428 23.927,89.612l-25.429,92.884l95.021,-24.925c26.181,14.28 55.659,21.807 85.658,21.816l0.074,0c98.789,0 179.206,-80.413 179.247,-179.243c0.018,-47.895 -18.61,-92.93 -52.451,-126.81Zm-126.797,275.782l-0.06,0c-26.734,-0.01 -52.954,-7.193 -75.828,-20.767l-5.441,-3.229l-56.386,14.792l15.05,-54.977l-3.542,-5.637c-14.913,-23.72 -22.791,-51.136 -22.779,-79.287c0.033,-82.142 66.867,-148.971 149.046,-148.971c39.793,0.014 77.199,15.531 105.329,43.692c28.128,28.16 43.609,65.592 43.594,105.4c-0.034,82.149 -66.866,148.983 -148.983,148.984Zm81.721,-111.581c-4.479,-2.242 -26.499,-13.075 -30.604,-14.571c-4.105,-1.495 -7.091,-2.241 -10.077,2.241c-2.986,4.483 -11.569,14.572 -14.182,17.562c-2.612,2.988 -5.225,3.364 -9.703,1.12c-4.479,-2.241 -18.91,-6.97 -36.017,-22.23c-13.314,-11.876 -22.304,-26.542 -24.916,-31.026c-2.612,-4.484 -0.279,-6.908 1.963,-9.14c2.016,-2.007 4.48,-5.232 6.719,-7.847c2.24,-2.615 2.986,-4.484 4.479,-7.472c1.493,-2.99 0.747,-5.604 -0.374,-7.846c-1.119,-2.241 -10.077,-24.288 -13.809,-33.256c-3.635,-8.733 -7.327,-7.55 -10.077,-7.688c-2.609,-0.13 -5.598,-0.158 -8.583,-0.158c-2.986,0 -7.839,1.121 -11.944,5.604c-4.105,4.484 -15.675,15.32 -15.675,37.364c0,22.046 16.048,43.342 18.287,46.332c2.24,2.99 31.582,48.227 76.511,67.627c10.685,4.615 19.028,7.371 25.533,9.434c10.728,3.41 20.492,2.929 28.209,1.775c8.605,-1.285 26.499,-10.833 30.231,-21.295c3.732,-10.464 3.732,-19.431 2.612,-21.298c-1.119,-1.869 -4.105,-2.99 -8.583,-5.232Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share MCP Gateway 2/3: Three layers of policy on telegram"
+            href="https://telegram.me/share/url?text=MCP%20Gateway%202%2f3%3a%20Three%20layers%20of%20policy&amp;url=http%3a%2f%2flocalhost%3a1313%2fposts%2fmcp-gateway-02-three-layers-of-policy%2f">
+            <svg version="1.1" xml:space="preserve" viewBox="2 2 28 28" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M26.49,29.86H5.5a3.37,3.37,0,0,1-2.47-1,3.35,3.35,0,0,1-1-2.47V5.48A3.36,3.36,0,0,1,3,3,3.37,3.37,0,0,1,5.5,2h21A3.38,3.38,0,0,1,29,3a3.36,3.36,0,0,1,1,2.46V26.37a3.35,3.35,0,0,1-1,2.47A3.38,3.38,0,0,1,26.49,29.86Zm-5.38-6.71a.79.79,0,0,0,.85-.66L24.73,9.24a.55.55,0,0,0-.18-.46.62.62,0,0,0-.41-.17q-.08,0-16.53,6.11a.59.59,0,0,0-.41.59.57.57,0,0,0,.43.52l4,1.24,1.61,4.83a.62.62,0,0,0,.63.43.56.56,0,0,0,.4-.17L16.54,20l4.09,3A.9.9,0,0,0,21.11,23.15ZM13.8,20.71l-1.21-4q8.72-5.55,8.78-5.55c.15,0,.23,0,.23.16a.18.18,0,0,1,0,.06s-2.51,2.3-7.52,6.8Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share MCP Gateway 2/3: Three layers of policy on ycombinator"
+            href="https://news.ycombinator.com/submitlink?t=MCP%20Gateway%202%2f3%3a%20Three%20layers%20of%20policy&u=http%3a%2f%2flocalhost%3a1313%2fposts%2fmcp-gateway-02-three-layers-of-policy%2f">
+            <svg version="1.1" xml:space="preserve" width="30px" height="30px" viewBox="0 0 512 512" fill="currentColor"
+                xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+                <path
+                    d="M449.446 0C483.971 0 512 28.03 512 62.554L512 449.446C512 483.97 483.97 512 449.446 512L62.554 512C28.03 512 0 483.97 0 449.446L0 62.554C0 28.03 28.029 0 62.554 0L449.446 0ZM183.8767 87.9921H121.8427L230.6673 292.4508V424.0079H281.3328V292.4508L390.1575 87.9921H328.1233L256 238.2489z" />
+            </svg>
+        </a>
+    </li>
+</ul>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="http://localhost:1313/">Juergen Neulinger</a></span> · 
+
+    
+    
+    <span>
+        Powered by
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a><script type="module">
+  const blocks = [...document.querySelectorAll('pre.mermaid')];
+  if (blocks.length) {
+    const { default: mermaid } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+
+    
+    
+    blocks.forEach(b => (b.dataset.src = b.textContent));
+
+    const root = document.documentElement;
+    const v = name => getComputedStyle(root).getPropertyValue(name).trim();
+
+    
+    
+    
+    function config() {
+      const dark      = root.dataset.theme === 'dark';
+      const theme     = v('--theme');     
+      const entry     = v('--entry');     
+      const primary   = v('--primary');   
+      const content   = v('--content');   
+      const secondary = v('--secondary');
+      const border    = v('--border');
+      const codeBg    = v('--code-bg');
+      const accent    = dark ? '#7aa2f7' : '#2f6fdb';
+
+      return {
+        startOnLoad: false,
+        theme: 'base',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+        themeVariables: {
+          darkMode: dark,
+          background: theme,
+          fontSize: '15px',
+
+          primaryColor: entry,    primaryTextColor: primary,   primaryBorderColor: accent,
+          secondaryColor: codeBg, secondaryTextColor: content, secondaryBorderColor: border,
+          tertiaryColor: theme,   tertiaryTextColor: content,  tertiaryBorderColor: border,
+
+          mainBkg: entry, nodeBorder: accent, nodeTextColor: primary,
+          lineColor: accent, textColor: content, titleColor: primary,
+          edgeLabelBackground: theme,
+          clusterBkg: codeBg, clusterBorder: border,
+
+           
+          actorBkg: entry, actorBorder: accent, actorTextColor: primary,
+          actorLineColor: secondary,
+          signalColor: content, signalTextColor: content,
+          labelBoxBkgColor: entry, labelBoxBorderColor: accent, labelTextColor: primary,
+          loopTextColor: content,
+          noteBkgColor: codeBg, noteTextColor: content, noteBorderColor: accent,
+          activationBkgColor: codeBg, activationBorderColor: accent,
+          sequenceNumberColor: theme,
+        },
+        flowchart: { useMaxWidth: true, htmlLabels: true, padding: 12, nodeSpacing: 45, rankSpacing: 55 },
+        sequence:  { useMaxWidth: true, actorMargin: 22, boxMargin: 8, noteAlign: 'left', mirrorActors: false, wrap: false },
+      };
+    }
+
+    async function render() {
+      mermaid.initialize(config());
+      for (const b of blocks) {
+        b.textContent = b.dataset.src;
+        b.removeAttribute('data-processed');
+      }
+      await mermaid.run({ nodes: blocks });
+    }
+
+    await render();
+
+    
+    let pending;
+    new MutationObserver(() => {
+      clearTimeout(pending);
+      pending = setTimeout(render, 60);
+    }).observe(root, { attributeFilter: ['data-theme'] });
+  }
+</script>
+
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
+        } else {
+            toplink.classList.add("hidden");
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+</body>
+
+</html>

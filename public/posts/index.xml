@@ -11,14 +11,51 @@
     </image>
     <generator>Hugo</generator>
     <language>en-us</language>
-    <lastBuildDate>Wed, 24 Jun 2026 09:15:45 +0200</lastBuildDate>
+    <lastBuildDate>Tue, 18 Aug 2026 11:13:08 +0200</lastBuildDate>
     <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>03 What It Takes to Run One</title>
+      <link>http://localhost:1313/posts/mcp-gateway-03-what-it-takes-to-run-one/</link>
+      <pubDate>Tue, 18 Aug 2026 11:13:08 +0200</pubDate>
+      <guid>http://localhost:1313/posts/mcp-gateway-03-what-it-takes-to-run-one/</guid>
+      <description>&lt;h1 id=&#34;an-mcp-gateway-is-not-a-weekend-project-what-it-takes-to-run-one&#34;&gt;An MCP gateway is not a weekend project: what it takes to run one&lt;/h1&gt;
+&lt;p&gt;&lt;em&gt;Part 3 of three, on a reference MCP gateway built with FastMCP, OPA and Microsoft Entra ID. This part is the honest accounting: where the reference stops, and what a real deployment still needs.&lt;/em&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Part 3 of 3 — the honest accounting.&lt;/strong&gt;
+Part 1: &lt;a href=&#34;01-why-you-need-an-mcp-gateway.md&#34;&gt;Why every enterprise rolling out MCP needs a gateway&lt;/a&gt; · Part 2: &lt;a href=&#34;02-three-layers-of-policy.md&#34;&gt;Three layers of policy&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>02 Three Layers of Policy</title>
+      <link>http://localhost:1313/posts/mcp-gateway-02-three-layers-of-policy/</link>
+      <pubDate>Tue, 18 Aug 2026 11:12:43 +0200</pubDate>
+      <guid>http://localhost:1313/posts/mcp-gateway-02-three-layers-of-policy/</guid>
+      <description>&lt;h1 id=&#34;three-layers-of-policy-splitting-authorization-across-teams-so-nobody-can-widen-it&#34;&gt;Three layers of policy: splitting authorization across teams so nobody can widen it&lt;/h1&gt;
+&lt;p&gt;&lt;em&gt;Part 2 of three, on a reference MCP gateway built with FastMCP, OPA and Microsoft Entra ID. This part is the policy design — the part I would carry into any implementation, on any substrate.&lt;/em&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Part 2 of 3 — the authorization design.&lt;/strong&gt;
+Part 1: &lt;a href=&#34;01-why-you-need-an-mcp-gateway.md&#34;&gt;Why every enterprise rolling out MCP needs a gateway&lt;/a&gt; · Part 3: &lt;a href=&#34;03-what-it-takes-to-run-one.md&#34;&gt;What it takes to run one&lt;/a&gt;&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>Mcp 1 Why You Need an Mcp Gateway</title>
+      <link>http://localhost:1313/posts/mcp-gateway-01-why-you-need-one/</link>
+      <pubDate>Tue, 18 Aug 2026 11:05:23 +0200</pubDate>
+      <guid>http://localhost:1313/posts/mcp-gateway-01-why-you-need-one/</guid>
+      <description>&lt;h1 id=&#34;why-every-enterprise-rolling-out-mcp-needs-a-gateway--and-how-to-build-one-on-entra-id&#34;&gt;Why every enterprise rolling out MCP needs a gateway — and how to build one on Entra ID&lt;/h1&gt;
+&lt;p&gt;&lt;em&gt;Part 1 of three. A walk-through of an open, MIT-licensed reference gateway I built on FastMCP, OPA and Microsoft Entra ID.&lt;/em&gt;&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;&lt;strong&gt;Part 1 of 3 — the control point.&lt;/strong&gt;
+Part 2: &lt;a href=&#34;02-three-layers-of-policy.md&#34;&gt;Three layers of policy&lt;/a&gt; · Part 3: &lt;a href=&#34;03-what-it-takes-to-run-one.md&#34;&gt;What it takes to run one&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;what-this-series-is-for&#34;&gt;What this series is for&lt;/h2&gt;
+&lt;p&gt;The gateway this series describes is a &lt;strong&gt;teaching artifact&lt;/strong&gt;. It runs, it is tested, and every claim below is something you can go and read in the repo — but it exists to show you what an MCP gateway has to do, not to be dropped into your cluster on Monday.&lt;/p&gt;</description>
+    </item>
     <item>
       <title>Audit Log Is the Product</title>
       <link>http://localhost:1313/posts/audit-log-is-the-product/</link>
-      <pubDate>Wed, 24 Jun 2026 09:15:45 +0200</pubDate>
+      <pubDate>Wed, 24 Jun 2026 00:00:00 +0000</pubDate>
       <guid>http://localhost:1313/posts/audit-log-is-the-product/</guid>
-      <description></description>
+      <description>In a regulated environment, the audit trail has the same status as the feature. The durable execution engine you pick settles where your evidence commits — before you write a line of compliance code.</description>
     </item>
     <item>
       <title>I taught an AI to give up. It&#39;s the best feature I built.</title>

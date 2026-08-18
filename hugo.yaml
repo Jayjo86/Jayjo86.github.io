@@ -6,6 +6,11 @@ theme: "PaperMod"
 enableRobotsTXT: true
 pygmentsUseClasses: true
 
+taxonomies:
+  tag: tags
+  category: categories
+  series: series
+
 markup:
   goldmark:
     renderer:

@@ -1,0 +1,37 @@
+{{- /* Renders the "you are here" box for a multi-part series.
+
+Front matter contract on each post:
+series: ["MCP Gateway"] # taxonomy term, identical string on every part
+series_order: 1 # 1-based position, drives the ordering below
+
+Usage: {{< series-nav>}} — no parameters, everything is derived.
+  */ -}}
+  {{- $names := .Page.Params.series | default slice -}}
+  {{- with index $names 0 -}}
+  {{- $term := site.GetPage (printf "/series/%s" (urlize .)) -}}
+  {{- if $term -}}
+  {{- $parts := sort $term.Pages "Params.series_order" -}}
+  {{- $total := len $parts -}}
+  <aside class="series-nav" aria-label="Series navigation">
+    <p class="series-nav__head">
+      <a href="{{ $term.RelPermalink }}">{{ $term.LinkTitle }}</a>
+      <span class="series-nav__count">&middot; part {{ $.Page.Params.series_order }} of {{ $total }}</span>
+    </p>
+    <ol class="series-nav__list">
+      {{- range $parts }}
+      <li{{ if eq .File.Path $.Page.File.Path }} class="series-nav__current" aria-current="true" {{ end }}>
+        {{- if eq .File.Path $.Page.File.Path -}}
+        <span>{{ .Params.series_title | default .LinkTitle }}</span> <em>(you are here)</em>
+        {{- else -}}
+        <a href="{{ .RelPermalink }}">{{ .Params.series_title | default .LinkTitle }}</a>
+        {{- end -}}
+        </li>
+        {{- end }}
+    </ol>
+  </aside>
+  {{- else -}}
+  {{- warnf "series-nav: no taxonomy term page for series %q on %s" . $.Page.File.Path -}}
+  {{- end -}}
+  {{- else -}}
+  {{- warnf "series-nav: %s has no 'series' front matter" .Page.File.Path -}}
+  {{- end -}}
