@@ -9,6 +9,7 @@ series: ["MCP Gateway"]
 series_order: 2
 series_weight: 2
 series_title: "Three layers of policy"
+repo: "https://github.com/Jayjo86/mcp-gateway-reference"
 cover:
   image: "images/thumb-02-three-layers.png"
   alt: "Splitting MCP authorization across three Rego layers with three owners — platform, domain team, tool owner — so that no team can widen another team's grant."
@@ -22,7 +23,7 @@ cover:
 
 ## Where we are
 
-[Part 1]({{< relref "posts/mcp-gateway-01-why-you-need-one.md" >}}) built the control point. The gateway is an OAuth 2.1 authorization server to MCP clients and a confidential client to Entra ID behind the scenes, it never forwards the inbound token, and it asks an OPA sidecar for a decision *before* any downstream credential comes into existence.
+[Part 1]({{< relref "posts/mcp-gateway-01-why-you-need-one.md" >}}) built the control point: an OAuth 2.1 authorization server to MCP clients, a confidential client to Entra ID behind it, no token passthrough, and a decision from an OPA sidecar *before* any downstream credential comes into existence.
 
 This part is the decision itself, and it is the most portable thing in the series. The Rego below is specific to OPA, and the roles are specific to Entra, but the shape — who owns which rule, and what happens when two owners disagree — survives a change of both. If you are evaluating a vendor's gateway rather than building one, this is the section to read with their docs open next to it.
 
@@ -86,7 +87,7 @@ Two decisions here that I would make the same way again.
 
 Gating on it is a real supply-chain control, but a coarse one. The session token is a bearer token, so an allowlist governs who was *issued* one, never who is *using* one. The control that fires at the right moment against a hostile client is the OAuth consent interstitial, not this rule. Turning the allowlist on is a reasonable thing to want; believing it is your primary defense is not.
 
-**CIMD entries scale, DCR entries don't.** Allowlisting a CIMD URL covers every installation of that client software everywhere. Allowlisting a DCR UUID covers one machine until it re-registers. Both are supported, and there is a test in the repo that fails if someone drops a non-CIMD string into `allowed_agents`, where it could never match anything.
+**CIMD entries scale, DCR entries don't.** Allowlisting a CIMD URL covers every installation of that client software everywhere. Allowlisting a DCR UUID covers one machine until it re-registers. Both are supported, and there is a test in [the repo](https://github.com/Jayjo86/mcp-gateway-reference) that fails if someone drops a non-CIMD string into `allowed_agents`, where it could never match anything.
 
 The deny reason names the exact string to paste into `data.json`:
 

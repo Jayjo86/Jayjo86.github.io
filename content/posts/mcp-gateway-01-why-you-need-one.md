@@ -9,6 +9,7 @@ series: ["MCP Gateway"]
 series_order: 1
 series_weight: 1
 series_title: "Why you need a gateway"
+repo: "https://github.com/Jayjo86/mcp-gateway-reference"
 cover:
   image: "images/thumb-01-why-a-gateway.png"
   alt: "A walk-through of an open, MIT-licensed reference MCP gateway built on FastMCP, OPA and Microsoft Entra ID — why an enterprise MCP rollout needs a single control point, and what that control point has to do."
@@ -22,7 +23,7 @@ cover:
 
 ## What this series is for
 
-The gateway this series describes is a **teaching artifact**. It runs, it is tested, and every claim below is something you can go and read in the repo — but it exists to show you what an MCP gateway has to do, not to be dropped into your cluster on Monday.
+The gateway this series describes is a **teaching artifact**. It runs, it is tested, and every claim below is something you can go and read in [the repo](https://github.com/Jayjo86/mcp-gateway-reference) — but it exists to show you what an MCP gateway has to do, not to be dropped into your cluster on Monday.
 
 So read it the way you would read a worked example. The interesting parts are the shape of the control point, the ordering of the steps inside it, and the handful of places where the obvious implementation is quietly wrong. Copy those. Copy the code too if it helps, but the code is the cheap half.
 

@@ -117,6 +117,13 @@
     color: var(--secondary);
   }
 
+  .series-nav__repo {
+    margin: 0.6rem 0 0;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--secondary);
+  }
   .series-nav__current em {
     font-style: normal;
     font-size: 0.85em;
@@ -256,6 +263,9 @@
       <li><a href="/posts/mcp-gateway-02-three-layers-of-policy/">Three layers of policy</a></li>
       <li class="series-nav__current" aria-current="true" ><span>What it takes to run one</span> <em>(you are here)</em></li>
     </ol>
+    <p class="series-nav__repo">Reference implementation:
+      <a href="https://github.com/Jayjo86/mcp-gateway-reference" rel="noopener">github.com/Jayjo86/mcp-gateway-reference</a>
+    </p>
   </aside>
 <hr>
 <h2 id="where-we-are">Where we are<a hidden class="anchor" aria-hidden="true" href="#where-we-are">#</a></h2>
@@ -306,7 +316,7 @@
 <ul>
 <li><strong>Ownership and review.</strong> CODEOWNERS per layer: the platform team owns <code>platform.rego</code>, each domain team owns its slice of <code>domain.rego</code>, tool teams own their <code>tool.rego</code> sections. A domain team must not be able to merge a change to the platform layer. Because the three layers are a conjunction no team can widen another&rsquo;s grant, and that property is exactly what makes distributed ownership safe — so protect it in review.</li>
 <li><strong>CI on every policy PR.</strong> <code>opa test policy/bundle policy/tests</code> as a required check, plus <code>opa fmt --diff</code> and <code>opa check --strict</code> to catch the undefined-versus-false traps from <a href="/posts/mcp-gateway-02-three-layers-of-policy/">Part 2</a> before they ship. Coverage on the Rego, so a new rule with no test is visible.</li>
-<li><strong>Contract tests against the application.</strong> Policy and code share a vocabulary of tool names, role names and server names. Test that they agree — the repo does this for the registry and <code>data.json</code> — and extend it to the Entra app roles actually defined in the tenant.</li>
+<li><strong>Contract tests against the application.</strong> Policy and code share a vocabulary of tool names, role names and server names. Test that they agree — <a href="https://github.com/Jayjo86/mcp-gateway-reference">the repo</a> does this for the registry and <code>data.json</code> — and extend it to the Entra app roles actually defined in the tenant.</li>
 <li><strong>Distribution from git, not from a volume mount.</strong> OPAL, an OPA bundle server, or a signed bundle in object storage. Turn on bundle signature verification on the OPA side so a compromised distribution path can&rsquo;t rewrite policy. Version every bundle and record the version in the audit row, so &ldquo;what rule denied this?&rdquo; is still answerable six months later.</li>
 <li><strong>Staged rollout with a shadow mode.</strong> The single biggest gap in what I built: there is no way to ship a tightened policy in dry-run and see what it <em>would</em> have denied. Add a decision mode that evaluates the new bundle alongside the live one and logs disagreements without enforcing. Without it every tightening is a leap, and the safe-feeling move — never tighten — is how policy rots.</li>
 <li><strong>Decision logs to the SIEM.</strong> OPA&rsquo;s decision log is a different record from the gateway&rsquo;s audit row and complements it: it captures the full input and the rules that fired. Ship it, retain it, and alert on deny-rate spikes. A sudden wave of denials is either an attack or a botched rollout, and you want to know which one within minutes.</li>

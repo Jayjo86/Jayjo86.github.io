@@ -117,6 +117,13 @@
     color: var(--secondary);
   }
 
+  .series-nav__repo {
+    margin: 0.6rem 0 0;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--secondary);
+  }
   .series-nav__current em {
     font-style: normal;
     font-size: 0.85em;
@@ -250,10 +257,13 @@
       <li class="series-nav__current" aria-current="true" ><span>Three layers of policy</span> <em>(you are here)</em></li>
       <li><a href="/posts/mcp-gateway-03-what-it-takes-to-run-one/">What it takes to run one</a></li>
     </ol>
+    <p class="series-nav__repo">Reference implementation:
+      <a href="https://github.com/Jayjo86/mcp-gateway-reference" rel="noopener">github.com/Jayjo86/mcp-gateway-reference</a>
+    </p>
   </aside>
 <hr>
 <h2 id="where-we-are">Where we are<a hidden class="anchor" aria-hidden="true" href="#where-we-are">#</a></h2>
-<p><a href="/posts/mcp-gateway-01-why-you-need-one/">Part 1</a> built the control point. The gateway is an OAuth 2.1 authorization server to MCP clients and a confidential client to Entra ID behind the scenes, it never forwards the inbound token, and it asks an OPA sidecar for a decision <em>before</em> any downstream credential comes into existence.</p>
+<p><a href="/posts/mcp-gateway-01-why-you-need-one/">Part 1</a> built the control point: an OAuth 2.1 authorization server to MCP clients, a confidential client to Entra ID behind it, no token passthrough, and a decision from an OPA sidecar <em>before</em> any downstream credential comes into existence.</p>
 <p>This part is the decision itself, and it is the most portable thing in the series. The Rego below is specific to OPA, and the roles are specific to Entra, but the shape — who owns which rule, and what happens when two owners disagree — survives a change of both. If you are evaluating a vendor&rsquo;s gateway rather than building one, this is the section to read with their docs open next to it.</p>
 <p>One thing from Part 1 is load-bearing here, so it is worth one more line. <strong>Three identities ride on every request</strong>: the <em>actor</em> (the human, from Entra&rsquo;s <code>sub</code> / <code>upn</code> / <code>roles</code>), the <em>agent</em> (the MCP client program — Claude Code, Cursor, a script — identified by the client ID this gateway&rsquo;s own OAuth server issued at registration), and the <em>broker</em> (this gateway, Entra&rsquo;s <code>azp</code>, a constant on every request ever made). Collapsing the last two is the easiest way to build a gateway that looks like it authorizes and doesn&rsquo;t. The policy below decides on the first two, separately and for different reasons.</p>
 <hr>
@@ -295,7 +305,7 @@
 </span></span></code></pre></div><p>Two decisions here that I would make the same way again.</p>
 <p><strong>The default is &ldquo;record it, don&rsquo;t gate on it.&rdquo;</strong> Authorization in this gateway is the <em>user&rsquo;s</em>. The domain and tool layers both decide on Entra-signed <code>roles</code>, and that is the load-bearing control; it works completely without this layer. Agent identity is primarily attribution — which client software did this, on every audit row — which is a NIS2 and DORA reporting obligation rather than an authorization one.</p>
 <p>Gating on it is a real supply-chain control, but a coarse one. The session token is a bearer token, so an allowlist governs who was <em>issued</em> one, never who is <em>using</em> one. The control that fires at the right moment against a hostile client is the OAuth consent interstitial, not this rule. Turning the allowlist on is a reasonable thing to want; believing it is your primary defense is not.</p>
-<p><strong>CIMD entries scale, DCR entries don&rsquo;t.</strong> Allowlisting a CIMD URL covers every installation of that client software everywhere. Allowlisting a DCR UUID covers one machine until it re-registers. Both are supported, and there is a test in the repo that fails if someone drops a non-CIMD string into <code>allowed_agents</code>, where it could never match anything.</p>
+<p><strong>CIMD entries scale, DCR entries don&rsquo;t.</strong> Allowlisting a CIMD URL covers every installation of that client software everywhere. Allowlisting a DCR UUID covers one machine until it re-registers. Both are supported, and there is a test in <a href="https://github.com/Jayjo86/mcp-gateway-reference">the repo</a> that fails if someone drops a non-CIMD string into <code>allowed_agents</code>, where it could never match anything.</p>
 <p>The deny reason names the exact string to paste into <code>data.json</code>:</p>
 <pre tabindex="0"><code>agent &#34;9f2c1a4e-...&#34; (dcr) is not on the platform allowlist
 </code></pre><p>That turns &ldquo;turn enforcement on&rdquo; from a log-diving exercise into self-service, which matters more than it sounds: the moment this layer stops being a tautology, it starts denying, and the person it denies first is usually you, on a Friday.</p>

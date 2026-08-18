@@ -9,6 +9,7 @@ series: ["MCP Gateway"]
 series_order: 3
 series_weight: 3
 series_title: "What it takes to run one"
+repo: "https://github.com/Jayjo86/mcp-gateway-reference"
 cover:
   image: "images/thumb-03-what-it-takes.png"
   alt: "The honest accounting for a reference MCP gateway: the deliberate simplifications, what the newer protocol revision changes, and everything still missing before production."
@@ -100,7 +101,7 @@ Policy is code that changes who can do their job. It needs the same lifecycle as
 
 - **Ownership and review.** CODEOWNERS per layer: the platform team owns `platform.rego`, each domain team owns its slice of `domain.rego`, tool teams own their `tool.rego` sections. A domain team must not be able to merge a change to the platform layer. Because the three layers are a conjunction no team can widen another's grant, and that property is exactly what makes distributed ownership safe — so protect it in review.
 - **CI on every policy PR.** `opa test policy/bundle policy/tests` as a required check, plus `opa fmt --diff` and `opa check --strict` to catch the undefined-versus-false traps from [Part 2]({{< relref "posts/mcp-gateway-02-three-layers-of-policy.md" >}}) before they ship. Coverage on the Rego, so a new rule with no test is visible.
-- **Contract tests against the application.** Policy and code share a vocabulary of tool names, role names and server names. Test that they agree — the repo does this for the registry and `data.json` — and extend it to the Entra app roles actually defined in the tenant.
+- **Contract tests against the application.** Policy and code share a vocabulary of tool names, role names and server names. Test that they agree — [the repo](https://github.com/Jayjo86/mcp-gateway-reference) does this for the registry and `data.json` — and extend it to the Entra app roles actually defined in the tenant.
 - **Distribution from git, not from a volume mount.** OPAL, an OPA bundle server, or a signed bundle in object storage. Turn on bundle signature verification on the OPA side so a compromised distribution path can't rewrite policy. Version every bundle and record the version in the audit row, so "what rule denied this?" is still answerable six months later.
 - **Staged rollout with a shadow mode.** The single biggest gap in what I built: there is no way to ship a tightened policy in dry-run and see what it *would* have denied. Add a decision mode that evaluates the new bundle alongside the live one and logs disagreements without enforcing. Without it every tightening is a leap, and the safe-feeling move — never tighten — is how policy rots.
 - **Decision logs to the SIEM.** OPA's decision log is a different record from the gateway's audit row and complements it: it captures the full input and the rules that fired. Ship it, retain it, and alert on deny-rate spikes. A sudden wave of denials is either an attack or a botched rollout, and you want to know which one within minutes.

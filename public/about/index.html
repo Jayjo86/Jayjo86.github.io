@@ -66,7 +66,94 @@ My pattern is to build a foundation to the point a team can own it, then move on
         document.querySelector("html").dataset.theme = 'light';
     }
 
-</script>
+</script><style>
+  .series-nav {
+    margin: 0 0 2rem;
+    padding: 0.9rem 1.1rem;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--primary);
+    border-radius: var(--radius);
+    background: var(--code-bg);
+    font-size: 0.92rem;
+    line-height: 1.5;
+  }
+
+  .series-nav__head {
+    margin: 0 0 0.45rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.78rem;
+  }
+
+  .series-nav__head a {
+    text-decoration: none;
+    box-shadow: none;
+  }
+
+  .series-nav__head a:hover {
+    text-decoration: underline;
+  }
+
+  .series-nav__count {
+    font-weight: 400;
+    color: var(--secondary);
+    text-transform: none;
+    letter-spacing: 0;
+  }
+
+  .series-nav__list {
+    margin: 0;
+    padding-left: 1.4rem;
+  }
+
+  .series-nav__list li {
+    margin: 0.15rem 0;
+  }
+
+  .series-nav__list li::marker {
+    color: var(--secondary);
+  }
+
+  .series-nav__current {
+    color: var(--secondary);
+  }
+
+  .series-nav__repo {
+    margin: 0.6rem 0 0;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.85rem;
+    color: var(--secondary);
+  }
+  .series-nav__current em {
+    font-style: normal;
+    font-size: 0.85em;
+    opacity: 0.75;
+  }
+
+   
+  .mermaid-figure {
+     
+    width: min(100vw - 2.5rem, 1140px);
+    margin: 2rem 0 2rem 50%;
+    transform: translateX(-50%);
+    overflow-x: auto;
+  }
+  .post-content pre.mermaid {
+    background: none;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+    white-space: normal;
+    line-height: normal;
+  }
+  .post-content pre.mermaid svg { max-width: 100%; height: auto; }
+   
+  .post-content pre.mermaid:not([data-processed]) { visibility: hidden; }
+</style>
+
 </head>
 <body id="top">
     <header class="header">
@@ -250,9 +337,84 @@ When I&rsquo;m not doing that, I&rsquo;m on a road bike or a pair of skis somewh
         <polyline points="17 18 12 13 7 18"></polyline>
     </svg>
 </a><script type="module">
-    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';
-    mermaid.initialize({ startOnLoad: true });
+  const blocks = [...document.querySelectorAll('pre.mermaid')];
+  if (blocks.length) {
+    const { default: mermaid } = await import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs');
+
+    
+    
+    blocks.forEach(b => (b.dataset.src = b.textContent));
+
+    const root = document.documentElement;
+    const v = name => getComputedStyle(root).getPropertyValue(name).trim();
+
+    
+    
+    
+    function config() {
+      const dark      = root.dataset.theme === 'dark';
+      const theme     = v('--theme');     
+      const entry     = v('--entry');     
+      const primary   = v('--primary');   
+      const content   = v('--content');   
+      const secondary = v('--secondary');
+      const border    = v('--border');
+      const codeBg    = v('--code-bg');
+      const accent    = dark ? '#7aa2f7' : '#2f6fdb';
+
+      return {
+        startOnLoad: false,
+        theme: 'base',
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+        themeVariables: {
+          darkMode: dark,
+          background: theme,
+          fontSize: '15px',
+
+          primaryColor: entry,    primaryTextColor: primary,   primaryBorderColor: accent,
+          secondaryColor: codeBg, secondaryTextColor: content, secondaryBorderColor: border,
+          tertiaryColor: theme,   tertiaryTextColor: content,  tertiaryBorderColor: border,
+
+          mainBkg: entry, nodeBorder: accent, nodeTextColor: primary,
+          lineColor: accent, textColor: content, titleColor: primary,
+          edgeLabelBackground: theme,
+          clusterBkg: codeBg, clusterBorder: border,
+
+           
+          actorBkg: entry, actorBorder: accent, actorTextColor: primary,
+          actorLineColor: secondary,
+          signalColor: content, signalTextColor: content,
+          labelBoxBkgColor: entry, labelBoxBorderColor: accent, labelTextColor: primary,
+          loopTextColor: content,
+          noteBkgColor: codeBg, noteTextColor: content, noteBorderColor: accent,
+          activationBkgColor: codeBg, activationBorderColor: accent,
+          sequenceNumberColor: theme,
+        },
+        flowchart: { useMaxWidth: true, htmlLabels: true, padding: 12, nodeSpacing: 45, rankSpacing: 55 },
+        sequence:  { useMaxWidth: true, actorMargin: 22, boxMargin: 8, noteAlign: 'left', mirrorActors: false, wrap: false },
+      };
+    }
+
+    async function render() {
+      mermaid.initialize(config());
+      for (const b of blocks) {
+        b.textContent = b.dataset.src;
+        b.removeAttribute('data-processed');
+      }
+      await mermaid.run({ nodes: blocks });
+    }
+
+    await render();
+
+    
+    let pending;
+    new MutationObserver(() => {
+      clearTimeout(pending);
+      pending = setTimeout(render, 60);
+    }).observe(root, { attributeFilter: ['data-theme'] });
+  }
 </script>
+
 
 <script>
     let menu = document.getElementById('menu');

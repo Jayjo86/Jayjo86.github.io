@@ -3,6 +3,7 @@
 Front matter contract on each post:
 series: ["MCP Gateway"] # taxonomy term, identical string on every part
 series_order: 1 # 1-based position, drives the ordering below
+repo: "https://..." # optional; if set, linked at the foot of the box
 
 Usage: {{< series-nav>}} — no parameters, everything is derived.
   */ -}}
@@ -28,6 +29,11 @@ Usage: {{< series-nav>}} — no parameters, everything is derived.
         </li>
         {{- end }}
     </ol>
+    {{- with $.Page.Params.repo }}
+    <p class="series-nav__repo">Reference implementation:
+      <a href="{{ . }}" rel="noopener">{{ strings.TrimPrefix "https://" . }}</a>
+    </p>
+    {{- end }}
   </aside>
   {{- else -}}
   {{- warnf "series-nav: no taxonomy term page for series %q on %s" . $.Page.File.Path -}}
