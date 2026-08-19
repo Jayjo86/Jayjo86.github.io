@@ -3,7 +3,7 @@ title: "MCP Gateway 3/3: What it takes to run one"
 description: "The honest accounting for a reference MCP gateway: the deliberate simplifications, what the newer protocol revision changes, and everything still missing before production."
 summary: "The honest accounting for a reference MCP gateway: the deliberate simplifications, what the newer protocol revision changes, and everything still missing before production."
 date: 2026-08-18T11:13:08+02:00
-draft: true
+draft: false
 tags: ["mcp", "gateway", "architecture", "security", "operations", "opa"]
 series: ["MCP Gateway"]
 series_order: 3

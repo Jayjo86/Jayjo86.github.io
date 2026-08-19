@@ -3,7 +3,7 @@ title: "MCP Gateway 2/3: Three layers of policy"
 description: "Splitting MCP authorization across three Rego layers with three owners — platform, domain team, tool owner — so that no team can widen another team's grant."
 summary: "Splitting MCP authorization across three Rego layers with three owners — platform, domain team, tool owner — so that no team can widen another team's grant."
 date: 2026-08-18T11:12:43+02:00
-draft: true
+draft: false
 tags: ["mcp", "gateway", "architecture", "security", "authorization", "opa", "rego"]
 series: ["MCP Gateway"]
 series_order: 2

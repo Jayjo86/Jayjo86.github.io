@@ -3,7 +3,7 @@ title: "MCP Gateway 1/3: Why every enterprise rolling out MCP needs a gateway"
 description: "A walk-through of an open, MIT-licensed reference MCP gateway built on FastMCP, OPA and Microsoft Entra ID — why an enterprise MCP rollout needs a single control point, and what that control point has to do."
 summary: "A walk-through of an open, MIT-licensed reference MCP gateway built on FastMCP, OPA and Microsoft Entra ID — why an enterprise MCP rollout needs a single control point, and what that control point has to do."
 date: 2026-08-18T11:05:23+02:00
-draft: true
+draft: false
 tags: ["mcp", "gateway", "architecture", "security", "oauth", "entra-id"]
 series: ["MCP Gateway"]
 series_order: 1
